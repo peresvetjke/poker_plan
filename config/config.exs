@@ -59,6 +59,16 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+config :poker_plan, :pow,
+  web_mailer_module: PokerPlanWeb,
+  web_module: PokerPlanWeb,
+  user: PokerPlan.Users.User,
+  repo: PokerPlan.Repo,
+  extensions: [PowResetPassword, PowEmailConfirmation],
+  controller_callbacks: Pow.Extension.Phoenix.ControllerCallbacks,
+  mailer_backend: PokerPlanWeb.Pow.Mailer,
+  routes_backend: PokerPlanWeb.Pow.Routes
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

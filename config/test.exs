@@ -31,3 +31,6 @@ config :logger, level: :warning
 
 # Initialize plugs at runtime for faster test compilation
 config :phoenix, :plug_init_mode, :runtime
+
+# Lower the iterations count in test environment to speed up tests
+config :pow, Pow.Ecto.Schema.Password, iterations: 1
