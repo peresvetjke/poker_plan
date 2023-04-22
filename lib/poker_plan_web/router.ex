@@ -28,6 +28,7 @@ defmodule PokerPlanWeb.Router do
   scope "/", PokerPlanWeb do
     pipe_through :browser
 
+    live "/counter", CounterLive
     get "/", PageController, :home
   end
 
