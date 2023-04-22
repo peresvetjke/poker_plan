@@ -57,10 +57,17 @@ defmodule PokerPlanWeb do
     end
   end
 
-  def live_view do
+  def live_view(opts \\ []) do
     quote do
-      use Phoenix.LiveView,
-        layout: {PokerPlanWeb.Layouts, :app}
+      @opts Keyword.merge(
+              [
+                layout: {PokerPlanWeb.Layouts, :live}
+                # container: {:div, class: "relative h-screen flex overflow-hidden bg-white"}
+              ],
+              unquote(opts)
+            )
+
+      use Phoenix.LiveView, @opts
 
       unquote(html_helpers())
     end
