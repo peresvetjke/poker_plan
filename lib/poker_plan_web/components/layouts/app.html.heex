@@ -14,16 +14,16 @@
       </p>
     </div>
     <div class="flex items-center gap-4">
-      <b :if={Pow.Plug.current_user(@conn)}>
-        <%= Pow.Plug.current_user(@conn).email %>
+      <b :if={@current_user}>
+        <%= @current_user.email %>
       </b>
-      <.link :if={Pow.Plug.current_user(@conn)} href={~p"/session"} method="delete">
+      <.link :if={@current_user} href={~p"/session"} method="delete">
         Sign out
       </.link>
-      <.link :if={is_nil(Pow.Plug.current_user(@conn))} navigate={~p"/session/new"}>
+      <.link :if={is_nil(@current_user)} navigate={~p"/session/new"}>
         Sign In
       </.link>
-      <.link :if={is_nil(Pow.Plug.current_user(@conn))} navigate={~p"/registration/new"}>
+      <.link :if={is_nil(@current_user)} navigate={~p"/registration/new"}>
         Registration
       </.link>
     </div>
