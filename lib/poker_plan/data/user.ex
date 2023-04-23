@@ -1,4 +1,4 @@
-defmodule PokerPlan.Users.User do
+defmodule PokerPlan.Data.User do
   use Ecto.Schema
   use Pow.Ecto.Schema
 

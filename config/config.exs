@@ -62,7 +62,7 @@ config :phoenix, :json_library, Jason
 config :poker_plan, :pow,
   web_mailer_module: PokerPlanWeb,
   web_module: PokerPlanWeb,
-  user: PokerPlan.Users.User,
+  user: PokerPlan.Data.User,
   repo: PokerPlan.Repo,
   extensions: [PowResetPassword, PowEmailConfirmation],
   controller_callbacks: Pow.Extension.Phoenix.ControllerCallbacks,
