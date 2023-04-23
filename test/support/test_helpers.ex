@@ -6,12 +6,13 @@ defmodule PokerPlan.TestHelpers do
   def insert_user(attrs \\ %{}) do
     changes =
       attrs
-      |> Map.put_new(:name, "Some User")
+      |> Map.put_new(:email, "user@example.com")
       |> Map.put_new(:username, "user#{Base.encode16(:crypto.strong_rand_bytes(8))}")
       |> Map.put_new(:password, "supersecret")
+      |> Map.put_new(:password_confirmation, "supersecret")
 
     %User{}
-    |> User.changeset()
+    |> User.changeset(changes)
     |> Repo.insert!()
   end
 
@@ -33,5 +34,10 @@ defmodule PokerPlan.TestHelpers do
     %Task{}
     |> Task.changeset(changes)
     |> Repo.insert!()
+  end
+
+  def insert_task() do
+    round = insert_round()
+    insert_task(%{round: round})
   end
 end

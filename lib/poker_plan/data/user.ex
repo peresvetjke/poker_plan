@@ -6,17 +6,17 @@ defmodule PokerPlan.Data.User do
     extensions: [PowResetPassword, PowEmailConfirmation]
 
   schema "users" do
-    field :username, :string
+    field(:username, :string)
     pow_user_fields()
 
     timestamps()
   end
 
-  def changeset(user_or_changeset, attrs) do
+  def changeset(user_or_changeset, %{} = params \\ %{}) do
     user_or_changeset
-    |> pow_changeset(attrs)
-    |> pow_extension_changeset(attrs)
-    |> Ecto.Changeset.cast(attrs, [:username])
+    |> pow_changeset(params)
+    |> pow_extension_changeset(params)
+    |> Ecto.Changeset.cast(params, [:username])
     |> Ecto.Changeset.validate_required([:username])
   end
 end

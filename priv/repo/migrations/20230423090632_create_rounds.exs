@@ -1,4 +1,4 @@
-defmodule PokerPlan.Repo.Migrations.CreateRound do
+defmodule PokerPlan.Repo.Migrations.CreateRounds do
   use Ecto.Migration
 
   def change do

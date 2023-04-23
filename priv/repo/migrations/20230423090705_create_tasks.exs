@@ -1,4 +1,4 @@
-defmodule PokerPlan.Repo.Migrations.CreateTask do
+defmodule PokerPlan.Repo.Migrations.CreateTasks do
   use Ecto.Migration
 
   def change do
