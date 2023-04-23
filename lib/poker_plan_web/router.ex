@@ -28,6 +28,13 @@ defmodule PokerPlanWeb.Router do
   scope "/", PokerPlanWeb do
     pipe_through :browser
 
+    live "/rounds", RoundLive.Index, :index
+    live "/rounds/new", RoundLive.Index, :new
+    live "/rounds/:id/edit", RoundLive.Index, :edit
+
+    live "/rounds/:id", RoundLive.Show, :show
+    live "/rounds/:id/show/edit", RoundLive.Show, :edit
+
     get "/", PageController, :home
   end
 

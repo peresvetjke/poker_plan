@@ -1,0 +1,41 @@
+<.header>
+  Listing Rounds
+  <:actions>
+    <.link patch={~p"/rounds/new"}>
+      <.button>New Round</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="rounds"
+  rows={@streams.rounds}
+  row_click={fn {_id, round} -> JS.navigate(~p"/rounds/#{round}") end}
+>
+  <:col :let={{_id, round}} label="Title"><%= round.title %></:col>
+  <:action :let={{_id, round}}>
+    <div class="sr-only">
+      <.link navigate={~p"/rounds/#{round}"}>Show</.link>
+    </div>
+    <.link patch={~p"/rounds/#{round}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, round}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: round.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal :if={@live_action in [:new, :edit]} id="round-modal" show on_cancel={JS.patch(~p"/rounds")}>
+  <.live_component
+    module={PokerPlanWeb.RoundLive.FormComponent}
+    id={@round.id || :new}
+    title={@page_title}
+    action={@live_action}
+    round={@round}
+    patch={~p"/rounds"}
+  />
+</.modal>
