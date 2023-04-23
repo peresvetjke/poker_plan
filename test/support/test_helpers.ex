@@ -28,8 +28,10 @@ defmodule PokerPlan.TestHelpers do
   end
 
   @spec insert_task(list | map) :: any
-  def insert_task(%{round: round} = attrs) do
-    changes = attrs |> Map.put_new(:title, "Some task")
+  def insert_task(%{round: _round} = attrs) do
+    changes =
+      attrs
+      |> Map.put_new(:title, "Some task")
 
     %Task{}
     |> Task.changeset(changes)
