@@ -19,7 +19,7 @@ defmodule PokerPlan.DataCase do
   using do
     quote do
       alias PokerPlan.Repo
-      alias PokerPlan.Data.{Round, Task, User}
+      alias PokerPlan.Data.{Estimation, Round, Task, User}
 
       import Ecto
       import Ecto.Changeset
