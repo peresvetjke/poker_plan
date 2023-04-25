@@ -62,6 +62,8 @@ defmodule PokerPlanWeb do
       use Phoenix.LiveView,
         layout: {PokerPlanWeb.Layouts, :app}
 
+      alias PokerPlan.Data.{Round, Task, User}
+
       on_mount PokerPlanWeb.UserLiveAuth
       unquote(html_helpers())
     end

@@ -28,7 +28,7 @@ defmodule PokerPlan.TestHelpers do
   end
 
   @spec insert_task(list | map) :: any
-  def insert_task(%{round: _round} = attrs) do
+  def insert_task(%{round_id: _round_id} = attrs) do
     changes =
       attrs
       |> Map.put_new(:title, "Some task")
@@ -40,6 +40,6 @@ defmodule PokerPlan.TestHelpers do
 
   def insert_task() do
     round = insert_round()
-    insert_task(%{round: round})
+    insert_task(%{round_id: round.id})
   end
 end

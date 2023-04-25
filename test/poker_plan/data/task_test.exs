@@ -10,7 +10,7 @@ defmodule PokerPlan.Data.TaskTest do
   end
 
   test "changeset with valid attributes", %{round: round} do
-    attrs = Map.put(@valid_attrs, :round, round)
+    attrs = Map.put(@valid_attrs, :round_id, round.id)
     changeset = Task.changeset(%Task{}, attrs)
     assert changeset.valid?
   end
@@ -20,8 +20,12 @@ defmodule PokerPlan.Data.TaskTest do
     refute changeset.valid?
   end
 
-  test "changeset does not accept long usernames" do
-    attrs = Map.put(@valid_attrs, :title, String.duplicate("a", 30))
+  test "changeset does not accept long usernames", %{round: round} do
+    attrs =
+      @valid_attrs
+      |> Map.put(:title, String.duplicate("a", 30))
+      |> Map.put(:round_id, round.id)
+
     changeset = Task.changeset(%Task{}, attrs)
     assert [title: {"should be at most %{count} character(s)", _}] = changeset.errors
   end

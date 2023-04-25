@@ -35,7 +35,11 @@ defmodule PokerPlan.Rounds do
       ** (Ecto.NoResultsError)
 
   """
-  def get_round!(id), do: Repo.get!(Round, id)
+  def get_round!(id) do
+    Round
+    |> Repo.get!(id)
+    |> Repo.preload(:tasks)
+  end
 
   @doc """
   Creates a round.

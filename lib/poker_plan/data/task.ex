@@ -1,7 +1,7 @@
 defmodule PokerPlan.Data.Task do
   use PokerPlan, :model
 
-  @required_fields ~w(state title)a
+  @required_fields ~w(round_id state title)a
   @optional_fields ~w()a
 
   schema "tasks" do

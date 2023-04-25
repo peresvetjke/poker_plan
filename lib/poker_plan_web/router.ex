@@ -30,10 +30,15 @@ defmodule PokerPlanWeb.Router do
 
     live "/rounds", RoundLive.Index, :index
     live "/rounds/new", RoundLive.Index, :new
-    live "/rounds/:id/edit", RoundLive.Index, :edit
+    live "/rounds/:round_id/edit", RoundLive.Index, :edit
 
-    live "/rounds/:id", RoundLive.Show, :show
-    live "/rounds/:id/show/edit", RoundLive.Show, :edit
+    live "/rounds/:round_id", RoundLive.Show, :show
+    live "/rounds/:round_id/show/edit", RoundLive.Show, :edit
+
+    scope "/rounds/:round_id" do
+      live "/tasks/new", RoundLive.Show, :new_task
+      live "/tasks/:id/edit", RoundLive.Show, :edit_task
+    end
 
     get "/", PageController, :home
   end
