@@ -5,17 +5,22 @@ defmodule PokerPlanWeb.RoundLive.Show do
 
   @impl true
   def mount(%{"round_id" => round_id}, _session, socket) do
-    channel = Phoenix.PubSub.subscribe(PokerPlan.PubSub, "round:#{round_id}")
+    Phoenix.PubSub.subscribe(PokerPlan.PubSub, "round:#{round_id}")
+
+    pid = PokerPlan.Rounds.RoundsStore.get(round_id)
+    :ok = PokerPlan.Rounds.Round.add_user(pid, socket.assigns.current_user)
+    round = PokerPlan.Rounds.Round.get(pid)
 
     socket =
       socket
       |> assign(
         page_title: page_title(socket.assigns.live_action),
-        round: Rounds.get_round!(round_id),
+        round: round,
         task: %Task{round_id: round_id}
       )
       |> stream(:tasks, Tasks.list_tasks(round_id))
 
+    IO.inspect(socket.assigns)
     {:ok, socket}
   end
 
@@ -24,6 +29,7 @@ defmodule PokerPlanWeb.RoundLive.Show do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
+  @impl true
   def handle_info({:saved, task}, socket) do
     {:noreply, stream_insert(socket, :tasks, task, at: 0)}
   end

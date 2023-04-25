@@ -1,4 +1,9 @@
 defmodule PokerPlan.Rounds do
+  @registry PokerPlan.RoundRegistry
+  @enforce_keys ~w[id title tasks]a
+
+  defstruct [:id, :title, :tasks, users: []]
+
   @moduledoc """
   The Rounds context.
   """
@@ -6,7 +11,7 @@ defmodule PokerPlan.Rounds do
   import Ecto.Query, warn: false
 
   alias PokerPlan.Repo
-  alias PokerPlan.Data.Round
+  alias PokerPlan.Data.{Round, User}
 
   @doc """
   Returns the list of rounds.
@@ -39,6 +44,31 @@ defmodule PokerPlan.Rounds do
     Round
     |> Repo.get!(id)
     |> Repo.preload(:tasks)
+
+    # case Agent.start_link(
+    #        fn -> %{id: id, users: []} end,
+    #        name: via(id)
+    #      ) do
+    #   {:ok, pid} ->
+    #     round =
+    #       Round
+    #       |> Repo.get!(id)
+    #       |> Repo.preload(:tasks)
+
+    #     IO.inspect(pid, label: "pid")
+
+    #     Agent.update(pid, fn _ ->
+    #       struct(
+    #         PokerPlan.Rounds,
+    #         round |> Map.from_struct() |> Map.put(:users, [])
+    #       )
+    #     end)
+
+    #     Agent.get(via(id), & &1)
+
+    #   {:error, {:already_started, _}} ->
+    #     Agent.get(via(id), & &1)
+    # end
   end
 
   @doc """

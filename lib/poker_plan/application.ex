@@ -17,9 +17,12 @@ defmodule PokerPlan.Application do
       # Start Finch
       {Finch, name: PokerPlan.Finch},
       # Start the Endpoint (http/https)
-      PokerPlanWeb.Endpoint
+      PokerPlanWeb.Endpoint,
       # Start a worker by calling: PokerPlan.Worker.start_link(arg)
       # {PokerPlan.Worker, arg}
+      # {Registry, keys: :unique, name: PokerPlan.Rounds.RoundRegistry},
+      # {PokerPlan.Rounds.RoundsStore, name: PokerPlan.App.RoundsStore}
+      {PokerPlan.Rounds.RoundsStore, name: PokerPlan.Rounds.RoundsStore}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
