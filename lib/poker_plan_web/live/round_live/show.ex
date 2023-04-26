@@ -30,9 +30,33 @@ defmodule PokerPlanWeb.RoundLive.Show do
   end
 
   @impl true
-  def handle_info({:saved, task}, socket) do
-    {:noreply, stream_insert(socket, :tasks, task, at: 0)}
+  def handle_info({:task_saved, %PokerPlan.Data.Task{} = task}, socket) do
+    {
+      :noreply,
+      socket
+      |> stream_delete(:tasks, task)
+      |> stream_insert(:tasks, task, at: 0)
+    }
   end
+
+  @impl true
+  def handle_info({:saved, %PokerPlan.Data.Round{} = round}, socket) do
+    {
+      :noreply,
+      socket
+      |> assign(:round, round)
+    }
+  end
+
+  # @impl true
+  # def handle_info({:task_saved, %PokerPlan.Data.Task{} = task}, socket) do
+  #   {:noreply, stream_insert(socket, :tasks, task, at: 0)}
+  # end
+
+  # @impl true
+  # def handle_info({:task_updated, %PokerPlan.Data.Task{} = task}, socket) do
+  #   {:noreply, stream_insert(socket, :tasks, task, at: 0)}
+  # end
 
   defp page_title(:show), do: "Show Round"
   defp page_title(:edit), do: "Edit Round"
@@ -52,6 +76,19 @@ defmodule PokerPlanWeb.RoundLive.Show do
 
     socket
     |> assign(:page_title, "New Task")
+  end
+
+  defp apply_action(socket, :edit, %{"round_id" => id}) do
+    socket
+  end
+
+  defp apply_action(socket, :edit_task, %{"id" => id}) do
+    task =
+      socket.assigns.round.tasks
+      |> Enum.find(fn x -> x.id == String.to_integer(id) end)
+
+    socket
+    |> assign(:task, task)
   end
 
   defp apply_action(socket, :show, params) do

@@ -59,9 +59,14 @@ defmodule PokerPlan.Tasks do
 
   """
   def update_task(%Task{} = task, attrs) do
-    task
-    |> Task.changeset(attrs)
-    |> Repo.update()
+    result =
+      task
+      |> Task.changeset(attrs)
+      |> Repo.update()
+
+    reload_round(task.round_id)
+
+    result
   end
 
   @doc """
@@ -91,5 +96,12 @@ defmodule PokerPlan.Tasks do
   """
   def change_task(%Task{} = task, attrs \\ %{}) do
     Task.changeset(task, attrs)
+  end
+
+  defp reload_round(round_id) do
+    round_id
+    |> PokerPlan.Rounds.RoundsStore.get()
+    |> IO.inspect(label: "pid")
+    |> PokerPlan.Rounds.Round.reload()
   end
 end

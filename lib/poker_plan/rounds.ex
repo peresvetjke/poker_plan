@@ -1,9 +1,4 @@
 defmodule PokerPlan.Rounds do
-  @registry PokerPlan.RoundRegistry
-  @enforce_keys ~w[id title tasks]a
-
-  defstruct [:id, :title, :tasks, users: []]
-
   @moduledoc """
   The Rounds context.
   """
@@ -101,10 +96,16 @@ defmodule PokerPlan.Rounds do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_round(%Round{} = round, attrs) do
+  def update_round(%PokerPlan.Data.Round{} = round, attrs) do
     round
     |> Round.changeset(attrs)
     |> Repo.update()
+  end
+
+  def update_round(%PokerPlan.Rounds.Round{} = round, attrs) do
+    round
+    |> PokerPlan.Rounds.Round.to_round()
+    |> update_round(attrs)
   end
 
   @doc """
@@ -132,7 +133,13 @@ defmodule PokerPlan.Rounds do
       %Ecto.Changeset{data: %Round{}}
 
   """
-  def change_round(%Round{} = round, attrs \\ %{}) do
+  def change_round(%PokerPlan.Data.Round{} = round, attrs \\ %{}) do
     Round.changeset(round, attrs)
+  end
+
+  def change_round(%PokerPlan.Rounds.Round{} = round, attrs) do
+    round
+    |> PokerPlan.Rounds.Round.to_round()
+    |> change_round(attrs)
   end
 end

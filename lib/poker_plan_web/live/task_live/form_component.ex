@@ -48,14 +48,15 @@ defmodule PokerPlanWeb.TaskLive.FormComponent do
     save_task(socket, socket.assigns.action, task_params)
   end
 
-  defp save_task(socket, :edit, task_params) do
+  defp save_task(socket, :edit_task, task_params) do
     case Tasks.update_task(socket.assigns.task, task_params) do
       {:ok, task} ->
-        Phoenix.PubSub.broadcast(
-          PokerPlan.PubSub,
-          "round:#{socket.assigns.round.id}",
-          {:saved, task}
-        )
+        notify_parent({:task_saved, task}, task.round_id)
+        # Phoenix.PubSub.broadcast(
+        #   PokerPlan.PubSub,
+        #   "round:#{socket.assigns.round.id}",
+        #   {:task_saved, task}
+        # )
 
         {:noreply,
          socket
@@ -70,11 +71,7 @@ defmodule PokerPlanWeb.TaskLive.FormComponent do
   defp save_task(socket, :new_task, task_params) do
     case Tasks.create_task(task_params) do
       {:ok, task} ->
-        Phoenix.PubSub.broadcast(
-          PokerPlan.PubSub,
-          "round:#{socket.assigns.round.id}",
-          {:saved, task}
-        )
+        notify_parent({:task_saved, task}, task.round_id)
 
         {:noreply,
          socket
@@ -90,5 +87,12 @@ defmodule PokerPlanWeb.TaskLive.FormComponent do
     assign(socket, :form, to_form(changeset))
   end
 
-  defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
+  # defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
+  defp notify_parent(msg, round_id) do
+    Phoenix.PubSub.broadcast(
+      PokerPlan.PubSub,
+      "round:#{round_id}",
+      msg
+    )
+  end
 end

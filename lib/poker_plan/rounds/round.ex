@@ -5,6 +5,14 @@ defmodule PokerPlan.Rounds.Round do
 
   # Client
 
+  def to_round(%PokerPlan.Rounds.Round{} = round) do
+    %PokerPlan.Data.Round{
+      id: round.id,
+      title: round.title,
+      tasks: round.tasks
+    }
+  end
+
   def start_link(round_id)
       when is_integer(round_id) do
     GenServer.start_link(__MODULE__, build_struct(round_id))
@@ -16,6 +24,11 @@ defmodule PokerPlan.Rounds.Round do
 
   def add_user(pid, user) do
     GenServer.cast(pid, {:add_user, user})
+  end
+
+  def reload(pid) do
+    round = build_struct(pid)
+    GenServer.cast(pid, :reload)
   end
 
   # Callbacks
@@ -41,6 +54,22 @@ defmodule PokerPlan.Rounds.Round do
     {:noreply, round}
   end
 
+  @impl GenServer
+  def handle_cast(:reload, _round) do
+    # round = self() |> Process.info() |> build_struct()
+    # round = Process.pid() |> build_struct()
+    # pid = Process.get(self(), :id)
+    pid = self()
+    round = build_struct(pid)
+
+    {:noreply, round}
+  end
+
+  defp build_struct(pid) when is_pid(pid) do
+    round = get(pid)
+    build_struct(round.id)
+  end
+
   defp build_struct(round_id) when is_integer(round_id) do
     PokerPlan.Data.Round
     |> PokerPlan.Repo.get(round_id)
@@ -55,6 +84,11 @@ defmodule PokerPlan.Rounds.Round do
       id: round.id,
       title: round.title,
       tasks: round.tasks,
+      # tasks:
+      #   round.tasks
+      #   |> Enum.reduce(%{}, fn record, acc ->
+      #     Map.put(acc, record.id, record)
+      #   end),
       users: []
     }
   end

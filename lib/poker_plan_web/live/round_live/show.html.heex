@@ -17,6 +17,17 @@
 
 <.table id="tasks" rows={@streams.tasks}>
   <:col :let={{_id, task}} label="Title"><%= task.title %></:col>
+  <:action :let={{_id, task}}>
+    <.link patch={~p"/rounds/#{@round}/tasks/#{task.id}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, task}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: task.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
 </.table>
 
 <.back navigate={~p"/rounds"}>Back to rounds</.back>
@@ -45,11 +56,11 @@
 >
   <.live_component
     module={PokerPlanWeb.TaskLive.FormComponent}
-    id={@task.id || :new}
+    id={@task.id || :new_task}
     title={@page_title}
     action={@live_action}
     round={@round}
-    task={@task || %Task{round_id: @round.id}}
+    task={@task}
     patch={~p"/rounds/#{@round}"}
   />
 </.modal>
