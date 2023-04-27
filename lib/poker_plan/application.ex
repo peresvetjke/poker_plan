@@ -23,6 +23,7 @@ defmodule PokerPlan.Application do
       # {Registry, keys: :unique, name: PokerPlan.Rounds.RoundRegistry},
       # {PokerPlan.Rounds.RoundsStore, name: PokerPlan.App.RoundsStore}
       {PokerPlan.Rounds.RoundsStore, name: PokerPlan.Rounds.RoundsStore}
+      # {Registry, keys: :unique, name: PokerPlan.TaskRegistry}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

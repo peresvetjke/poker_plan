@@ -1,22 +1,35 @@
 <.header>
-  Round <%= @round.id %>
+  Round <%= @round_info.round.id %>
   <:subtitle>This is a round record from your database.</:subtitle>
   <:actions>
-    <.link patch={~p"/rounds/#{@round}/show/edit"} phx-click={JS.push_focus()}>
+    <.link patch={~p"/rounds/#{@round_info.round}/show/edit"} phx-click={JS.push_focus()}>
       <.button>Edit round</.button>
     </.link>
-    <.link patch={~p"/rounds/#{@round}/tasks/new"} phx-click={JS.push_focus()}>
+    <.link patch={~p"/rounds/#{@round_info.round}/tasks/new"} phx-click={JS.push_focus()}>
       <.button>New Task</.button>
     </.link>
   </:actions>
 </.header>
 
-<.list>
-  <:item title="Title"><%= @round.title %></:item>
-</.list>
+<br>
+
+<p>Current task <%= @round_info.current_task.task.title %></p>
+<.button>1</.button>
+<.button>2</.button>
+<.button>3</.button>
+<.button>5</.button>
+<.button>8</.button>
+
+<.table id="users" rows={@streams.users}>
+  <:col :let={{_id, user}} label="User"><%= user.username %></:col>
+</.table>
 
 <.table id="tasks" rows={@streams.tasks}>
   <:col :let={{_id, task}} label="Title"><%= task.title %></:col>
+  <:col :let={{_id, task}} label="Status"><%= task.state %></:col>
+  <:action :let={{_id, task}}>
+    <.link patch={~p"/rounds/#{@round_info.round}/tasks/#{task.id}/start"}>start</.link>
+  </:action>
 </.table>
 
 <.back navigate={~p"/rounds"}>Back to rounds</.back>
@@ -25,15 +38,15 @@
   :if={@live_action == :edit}
   id="round-modal"
   show
-  on_cancel={JS.patch(~p"/rounds/#{@round}")}
+  on_cancel={JS.patch(~p"/rounds/#{@round_info.round}")}
 >
   <.live_component
     module={PokerPlanWeb.RoundLive.FormComponent}
-    id={@round.id}
+    id={@round_info.round.id}
     title={@page_title}
     action={@live_action}
-    round={@round}
-    patch={~p"/rounds/#{@round}"}
+    round={@round_info.round}
+    patch={~p"/rounds/#{@round_info.round}"}
   />
 </.modal>
 
@@ -41,15 +54,15 @@
   :if={@live_action in [:new_task, :edit_task]}
   id="task-modal"
   show
-  on_cancel={JS.patch(~p"/rounds/#{@round}")}
+  on_cancel={JS.patch(~p"/rounds/#{@round_info.round}")}
 >
   <.live_component
     module={PokerPlanWeb.TaskLive.FormComponent}
     id={@task.id || :new}
     title={@page_title}
     action={@live_action}
-    round={@round}
-    task={@task || %Task{round_id: @round.id}}
-    patch={~p"/rounds/#{@round}"}
+    round={@round_info.round}
+    task={@task || %Task{round_id: @round_info.round.id}}
+    patch={~p"/rounds/#{@round_info.round}"}
   />
 </.modal>

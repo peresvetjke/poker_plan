@@ -6,41 +6,43 @@ defmodule PokerPlanWeb.Router do
     extensions: [PowResetPassword, PowEmailConfirmation]
 
   pipeline :browser do
-    plug :accepts, ["html"]
-    plug :fetch_session
-    plug :fetch_live_flash
-    plug :put_root_layout, {PokerPlanWeb.Layouts, :root}
-    plug :protect_from_forgery
-    plug :put_secure_browser_headers
+    plug(:accepts, ["html"])
+    plug(:fetch_session)
+    plug(:fetch_live_flash)
+    plug(:put_root_layout, {PokerPlanWeb.Layouts, :root})
+    plug(:protect_from_forgery)
+    plug(:put_secure_browser_headers)
   end
 
   pipeline :api do
-    plug :accepts, ["json"]
+    plug(:accepts, ["json"])
   end
 
   scope "/" do
-    pipe_through :browser
+    pipe_through(:browser)
 
     pow_routes()
     pow_extension_routes()
   end
 
   scope "/", PokerPlanWeb do
-    pipe_through :browser
+    pipe_through(:browser)
 
-    live "/rounds", RoundLive.Index, :index
-    live "/rounds/new", RoundLive.Index, :new
-    live "/rounds/:round_id/edit", RoundLive.Index, :edit
+    live("/rounds", RoundLive.Index, :index)
+    live("/rounds/new", RoundLive.Index, :new)
+    live("/rounds/:round_id/edit", RoundLive.Index, :edit)
 
-    live "/rounds/:round_id", RoundLive.Show, :show
-    live "/rounds/:round_id/show/edit", RoundLive.Show, :edit
+    live("/rounds/:round_id", RoundLive.Show, :show)
+    live("/rounds/:round_id/show/edit", RoundLive.Show, :edit)
 
     scope "/rounds/:round_id" do
-      live "/tasks/new", RoundLive.Show, :new_task
-      live "/tasks/:id/edit", RoundLive.Show, :edit_task
+      live("/tasks/new", RoundLive.Show, :new_task)
+      live("/tasks/:id/edit", RoundLive.Show, :edit_task)
+      live("/tasks/:id/start", RoundLive.Show, :start_task)
+      live("/tasks/:id/estimate", RoundLive.Show, :estimate_task)
     end
 
-    get "/", PageController, :home
+    get("/", PageController, :home)
   end
 
   # Other scopes may use custom stacks.
@@ -58,10 +60,10 @@ defmodule PokerPlanWeb.Router do
     import Phoenix.LiveDashboard.Router
 
     scope "/dev" do
-      pipe_through :browser
+      pipe_through(:browser)
 
-      live_dashboard "/dashboard", metrics: PokerPlanWeb.Telemetry
-      forward "/mailbox", Plug.Swoosh.MailboxPreview
+      live_dashboard("/dashboard", metrics: PokerPlanWeb.Telemetry)
+      forward("/mailbox", Plug.Swoosh.MailboxPreview)
     end
   end
 end

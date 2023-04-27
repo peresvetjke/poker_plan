@@ -41,9 +41,4 @@ defmodule PokerPlan.Rounds.RoundsStore do
         {:reply, pid, map}
     end
   end
-
-  # @impl GenServer
-  # def handle_cast({:put, key, value}, state) do
-  #   {:noreply, Map.put(state, key, value)}
-  # end
 end
