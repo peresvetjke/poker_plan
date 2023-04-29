@@ -1,4 +1,4 @@
-defmodule PokerPlan.Rounds.Task do
+defmodule PokerPlan.Rounds.CurrentTask do
   import Ecto.Query, only: [from: 2]
 
   alias PokerPlan.Repo
@@ -10,6 +10,7 @@ defmodule PokerPlan.Rounds.Task do
   require Logger
 
   # def start_link(%PokerPlan.Data.Task{state: "idle"} = task) do
+
   def start_link(%PokerPlan.Data.Task{} = task, users \\ []) do
     estimates = Enum.reduce(users, %{}, fn user, acc -> Map.put(acc, user.id, nil) end)
 
@@ -33,10 +34,6 @@ defmodule PokerPlan.Rounds.Task do
     GenServer.cast(pid, {:transition, :vote, user_id, value})
   end
 
-  def start(pid) do
-    GenServer.cast(pid, {:transition, :start})
-  end
-
   def stop(pid) do
     GenServer.cast(pid, {:transition, :stop})
   end
@@ -50,7 +47,20 @@ defmodule PokerPlan.Rounds.Task do
   end
 
   @impl GenServer
-  def init(state), do: {:ok, state}
+  def init(%{task: task, estimates: estimates} = task_info) do
+    round_id = task.round_id
+
+    from(
+      t in Task,
+      where: t.round_id == ^round_id,
+      update: [set: [state: "idle"]]
+    )
+
+    {:ok, task} = PokerPlan.App.update_task(task_info.task, %{state: "doing"})
+    # PokerPlan.Round.reload_round(task.round_id)
+
+    {:ok, %{task_info | task: task}}
+  end
 
   @impl GenServer
   def handle_cast(
@@ -99,14 +109,14 @@ defmodule PokerPlan.Rounds.Task do
         %{task: %PokerPlan.Data.Task{state: state} = task, estimates: %{} = estimates} = info
       )
       when is_integer(user_id) and is_integer(value) do
-    IO.inspect(state, label: "voting, state")
+    # IO.inspect(state, label: "voting, state")
 
     case state do
       "doing" ->
         estimates = Map.put(estimates, user_id, value)
 
         if Map.values(estimates) |> Enum.all?() do
-          {:ok, task} = PokerPlan.Tasks.update_task(task, %{state: "finished"})
+          PokerPlan.App.update_task(task, %{state: "finished"})
         end
 
         {:noreply, %{task: task, estimates: estimates}}
@@ -117,33 +127,6 @@ defmodule PokerPlan.Rounds.Task do
   end
 
   @impl GenServer
-  def handle_cast(
-        {:transition, :start},
-        %{task: %PokerPlan.Data.Task{state: "idle"}} = task_info
-      ),
-      do: do_start(task_info)
-
-  @impl GenServer
-  def handle_cast(
-        {:transition, :start},
-        %{task: %PokerPlan.Data.Task{state: "doing"}} = task_info
-      ),
-      do: do_start(task_info)
-
-  defp do_start(task_info) do
-    round_id = task_info.task.round_id
-
-    Repo.update_all(
-      from(t in PokerPlan.Data.Task, where: t.round_id == ^round_id),
-      set: [state: "idle"]
-    )
-
-    {:ok, _} = PokerPlan.Tasks.update_task(task_info.task, %{state: "doing"})
-
-    {:noreply, task_info}
-  end
-
-  @impl GenServer
   def handle_cast({:transition, :stop}, %{task: %PokerPlan.Data.Task{} = task, estimates: %{}}) do
     {:ok, _} = PokerPlan.Tasks.update_task(task, %{state: "idle"})
 
@@ -151,34 +134,7 @@ defmodule PokerPlan.Rounds.Task do
   end
 
   @impl GenServer
-  def handle_call(
-        :get,
-        _from,
-        %{
-          task: %PokerPlan.Data.Task{state: "finished"} = task,
-          estimates: %{} = estimates
-        } = info
-      ) do
+  def handle_call(:get, _from, info) do
     {:reply, info, info}
-  end
-
-  @impl GenServer
-  def handle_call(
-        :get,
-        _from,
-        %{task: %PokerPlan.Data.Task{} = task, estimates: %{} = estimates} = info
-      ) do
-    estimates =
-      for {k, v} <- estimates,
-          into: %{},
-          do: {
-            k,
-            case v do
-              nil -> false
-              _ -> true
-            end
-          }
-
-    {:reply, %{task: task, estimates: estimates}, info}
   end
 end

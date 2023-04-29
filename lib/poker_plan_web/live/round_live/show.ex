@@ -25,14 +25,21 @@ defmodule PokerPlanWeb.RoundLive.Show do
   end
 
   def tasks_list(assigns) do
+    order = ["doing", "idle", "hold", "finished"]
+
+    tasks =
+      Enum.sort_by(assigns[:round_info].round.tasks, fn task ->
+        Enum.find_index(order, &(&1 == task.state))
+      end)
+
     ~H"""
-    <.table id="tasks" rows={@streams.tasks}>
-      <:col :let={{_id, task}} label="Title"><%= task.title %></:col>
-      <:col :let={{_id, task}} label="Status"><%= task.state %></:col>
-      <:action :let={{_id, task}}>
+    <.table id="tasks" rows={tasks}>
+      <:col :let={task} label="Title"><%= task.title %></:col>
+      <:col :let={task} label="Status"><%= task.state %></:col>
+      <:action :let={task}>
         <.link phx-click="delete_task" phx-value-id={task.id}>Delete</.link>
       </:action>
-      <:action :let={{_id, task}}>
+      <:action :let={task}>
         <.link phx-click="start_task" phx-value-id={task.id}>Start</.link>
       </:action>
     </.table>
@@ -66,7 +73,7 @@ defmodule PokerPlanWeb.RoundLive.Show do
     current_task_info =
       case round_info.current_task do
         nil -> nil
-        pid -> PokerPlan.Rounds.Task.get(pid)
+        pid -> PokerPlan.Rounds.CurrentTask.get(pid)
       end
 
     socket =
@@ -218,7 +225,7 @@ defmodule PokerPlanWeb.RoundLive.Show do
   def handle_event("estimate_task", %{"points" => points}, socket) do
     points = String.to_integer(points)
     pid = socket.assigns.round_info.current_task
-    PokerPlan.Rounds.Task.vote(pid, socket.assigns.current_user.id, points)
+    PokerPlan.Rounds.CurrentTask.vote(pid, socket.assigns.current_user.id, points)
     {:noreply, socket}
   end
 

@@ -5,7 +5,13 @@ defmodule PokerPlan.Data.TaskTest do
   @invalid_attrs %{}
 
   setup do
+    # Explicitly get a connection before each test
+    # :ok = Ecto.Adapters.SQL.Sandbox.checkout(Repo)
+    # Setting the shared mode must be done only after checkout
+    # Ecto.Adapters.SQL.Sandbox.mode(Repo, {:shared, self()})
+
     round = insert_round()
+
     {:ok, round: round}
   end
 

@@ -17,16 +17,7 @@
 
 <.users_list round_info={@round_info} current_task_info={@current_task_info}></.users_list>
 
-<.table id="tasks" rows={@streams.tasks}>
-  <:col :let={{_id, task}} label="Title"><%= task.title %></:col>
-  <:col :let={{_id, task}} label="Status"><%= task.state %></:col>
-  <:action :let={{_id, task}}>
-    <.link phx-click="delete_task" phx-value-id={task.id}>Delete</.link>
-  </:action>
-  <:action :let={{_id, task}}>
-    <.link phx-click="start_task" phx-value-id={task.id}>Start</.link>
-  </:action>
-</.table>
+<.tasks_list round_info={@round_info}></.tasks_list>
 
 <.back navigate={~p"/rounds"}>Back to rounds</.back>
 
