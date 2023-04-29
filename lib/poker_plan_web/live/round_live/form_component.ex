@@ -55,7 +55,7 @@ defmodule PokerPlanWeb.RoundLive.FormComponent do
   defp save_round(socket, :edit, round_params) do
     case Rounds.update_round(socket.assigns.round, round_params) do
       {:ok, round} ->
-        notify_parent({:saved, round})
+        # notify_parent({:saved, round})
 
         {:noreply,
          socket
@@ -70,7 +70,7 @@ defmodule PokerPlanWeb.RoundLive.FormComponent do
   defp save_round(socket, :new, round_params) do
     case Rounds.create_round(round_params) do
       {:ok, round} ->
-        notify_parent({:saved, round})
+        # notify_parent({:saved, round})
 
         {:noreply,
          socket

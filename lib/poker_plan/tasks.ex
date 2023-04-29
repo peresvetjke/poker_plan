@@ -27,6 +27,11 @@ defmodule PokerPlan.Tasks do
 
   """
   def get_task!(id), do: Repo.get!(Task, id)
+  # def get_task(nil), do: nil
+
+  # def get_task(task_pid) when is_pid(task_pid) do
+  #   PokerPlan.Rounds.Task.get(task_pid)
+  # end
 
   @doc """
   Creates a task.
@@ -44,6 +49,7 @@ defmodule PokerPlan.Tasks do
     %Task{}
     |> Task.changeset(attrs)
     |> Repo.insert()
+    |> refresh(:task_created)
   end
 
   @doc """
@@ -62,6 +68,7 @@ defmodule PokerPlan.Tasks do
     task
     |> Task.changeset(attrs)
     |> Repo.update()
+    |> refresh(:task_updated)
   end
 
   @doc """
@@ -78,6 +85,7 @@ defmodule PokerPlan.Tasks do
   """
   def delete_task(%Task{} = task) do
     Repo.delete(task)
+    |> refresh(:task_deleted)
   end
 
   @doc """
@@ -92,4 +100,39 @@ defmodule PokerPlan.Tasks do
   def change_task(%Task{} = task, attrs \\ %{}) do
     Task.changeset(task, attrs)
   end
+
+  defp refresh({:ok, task}, msg) do
+    case PokerPlan.Rounds.RoundsStore.get(task.round_id) do
+      nil ->
+        nil
+
+      pid ->
+        case msg do
+          :task_deleted -> PokerPlan.Rounds.Round.clear_current_task(pid)
+          _ -> nil
+        end
+
+        PokerPlan.Rounds.Round.reload_round(pid)
+    end
+
+    Phoenix.PubSub.broadcast(
+      PokerPlan.PubSub,
+      "round:#{task.round_id}",
+      {msg, task}
+    )
+
+    {:ok, task}
+  end
+
+  defp refresh({:error, changeset}, _), do: {:error, changeset}
+
+  # defp broadcast({:ok, task}, :task_updated) do
+  #   Phoenix.PubSub.broadcast(
+  #     PokerPlan.PubSub,
+  #     "round:#{task.round_id}",
+  #     {:task_updated, task}
+  #   )
+
+  #   {:ok, task}
+  # end
 end

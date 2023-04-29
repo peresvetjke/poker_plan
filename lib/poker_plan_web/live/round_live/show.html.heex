@@ -1,54 +1,34 @@
 <.header>
-  Round <%= @round_info.round.id %>
+  <%= @round_info.round.title %>
   <:subtitle>This is a round record from your database.</:subtitle>
   <:actions>
-    <.link patch={~p"/rounds/#{@round_info.round}/show/edit"} phx-click={JS.push_focus()}>
-      <.button>Edit round</.button>
-    </.link>
     <.link patch={~p"/rounds/#{@round_info.round}/tasks/new"} phx-click={JS.push_focus()}>
       <.button>New Task</.button>
     </.link>
   </:actions>
 </.header>
 
-<br>
+<.current_task
+  :if={@current_task_info}
+  round_info={@round_info}
+  current_task_info={@current_task_info}
+>
+</.current_task>
 
-<p>Current task <%= @round_info.current_task.task.title %></p>
-<.button>1</.button>
-<.button>2</.button>
-<.button>3</.button>
-<.button>5</.button>
-<.button>8</.button>
-
-<.table id="users" rows={@streams.users}>
-  <:col :let={{_id, user}} label="User"><%= user.username %></:col>
-</.table>
+<.users_list round_info={@round_info} current_task_info={@current_task_info}></.users_list>
 
 <.table id="tasks" rows={@streams.tasks}>
   <:col :let={{_id, task}} label="Title"><%= task.title %></:col>
   <:col :let={{_id, task}} label="Status"><%= task.state %></:col>
   <:action :let={{_id, task}}>
-    <.link patch={~p"/rounds/#{@round_info.round}/tasks/#{task.id}/start"}>start</.link>
+    <.link phx-click="delete_task" phx-value-id={task.id}>Delete</.link>
+  </:action>
+  <:action :let={{_id, task}}>
+    <.link phx-click="start_task" phx-value-id={task.id}>Start</.link>
   </:action>
 </.table>
 
 <.back navigate={~p"/rounds"}>Back to rounds</.back>
-
-<.modal
-  :if={@live_action == :edit}
-  id="round-modal"
-  show
-  on_cancel={JS.patch(~p"/rounds/#{@round_info.round}")}
->
-  <.live_component
-    module={PokerPlanWeb.RoundLive.FormComponent}
-    id={@round_info.round.id}
-    title={@page_title}
-    action={@live_action}
-    round={@round_info.round}
-    patch={~p"/rounds/#{@round_info.round}"}
-  />
-</.modal>
 
 <.modal
   :if={@live_action in [:new_task, :edit_task]}

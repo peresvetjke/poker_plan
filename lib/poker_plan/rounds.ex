@@ -11,7 +11,7 @@ defmodule PokerPlan.Rounds do
   import Ecto.Query, warn: false
 
   alias PokerPlan.Repo
-  alias PokerPlan.Data.{Round, User}
+  alias PokerPlan.Data.{Round, Task, User}
 
   @doc """
   Returns the list of rounds.
@@ -40,35 +40,21 @@ defmodule PokerPlan.Rounds do
       ** (Ecto.NoResultsError)
 
   """
-  def get_round!(id) do
-    Round
-    |> Repo.get!(id)
-    |> Repo.preload(:tasks)
+  def get_round!(id) when is_integer(id) do
+    case PokerPlan.Rounds.RoundsStore.get(id) do
+      nil ->
+        round =
+          Round
+          |> Repo.get!(id)
+          |> Repo.preload(:tasks)
 
-    # case Agent.start_link(
-    #        fn -> %{id: id, users: []} end,
-    #        name: via(id)
-    #      ) do
-    #   {:ok, pid} ->
-    #     round =
-    #       Round
-    #       |> Repo.get!(id)
-    #       |> Repo.preload(:tasks)
+        {:ok, pid} = PokerPlan.Rounds.Round.start_link(round)
+        PokerPlan.Rounds.RoundsStore.put(id, pid)
+        PokerPlan.Rounds.Round.get(pid)
 
-    #     IO.inspect(pid, label: "pid")
-
-    #     Agent.update(pid, fn _ ->
-    #       struct(
-    #         PokerPlan.Rounds,
-    #         round |> Map.from_struct() |> Map.put(:users, [])
-    #       )
-    #     end)
-
-    #     Agent.get(via(id), & &1)
-
-    #   {:error, {:already_started, _}} ->
-    #     Agent.get(via(id), & &1)
-    # end
+      pid ->
+        PokerPlan.Rounds.Round.get(pid)
+    end
   end
 
   @doc """
@@ -134,5 +120,56 @@ defmodule PokerPlan.Rounds do
   """
   def change_round(%Round{} = round, attrs \\ %{}) do
     Round.changeset(round, attrs)
+  end
+
+  def add_user(%Round{id: id} = round, %User{} = user) when is_integer(id) do
+    pid =
+      case PokerPlan.Rounds.RoundsStore.get(round.id) do
+        nil ->
+          {:ok, pid} = PokerPlan.Rounds.Round.start_link(round)
+          pid
+
+        pid ->
+          pid
+      end
+
+    PokerPlan.Rounds.Round.add_user(pid, user)
+
+    case PokerPlan.Rounds.Round.get(pid).current_task do
+      nil -> nil
+      pid -> PokerPlan.Rounds.Task.add_user(pid, user.id)
+    end
+  end
+
+  def start_task(%Task{} = task) do
+    round_pid =
+      case PokerPlan.Rounds.RoundsStore.get(task.round_id) do
+        nil ->
+          round =
+            Round
+            |> Repo.get!(task.round_id)
+            |> Repo.preload(:tasks)
+
+          {:ok, pid} = PokerPlan.Rounds.Round.start_link(round)
+          pid
+
+        pid ->
+          pid
+      end
+
+    # round_info = PokerPlan.Rounds.Round.get(round_pid)
+
+    # case round_info.current_task do
+    #   nil ->
+
+    #     task_pid = task_pid
+
+    #   previous_task_pid ->
+    #     PokerPlan.Rounds.Task.stop(previous_task_pid)
+    #     {:ok, task_pid} = PokerPlan.Rounds.Task.start_link(task)
+    #     # task_pid = task_pid
+    # end
+
+    PokerPlan.Rounds.Round.set_current_task(round_pid, task)
   end
 end

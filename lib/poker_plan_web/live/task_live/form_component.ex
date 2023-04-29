@@ -51,12 +51,6 @@ defmodule PokerPlanWeb.TaskLive.FormComponent do
   defp save_task(socket, :edit, task_params) do
     case Tasks.update_task(socket.assigns.task, task_params) do
       {:ok, task} ->
-        Phoenix.PubSub.broadcast(
-          PokerPlan.PubSub,
-          "round:#{socket.assigns.round.id}",
-          {:saved, task}
-        )
-
         {:noreply,
          socket
          |> put_flash(:info, "Task updated successfully")
@@ -70,12 +64,6 @@ defmodule PokerPlanWeb.TaskLive.FormComponent do
   defp save_task(socket, :new_task, task_params) do
     case Tasks.create_task(task_params) do
       {:ok, task} ->
-        Phoenix.PubSub.broadcast(
-          PokerPlan.PubSub,
-          "round:#{socket.assigns.round.id}",
-          {:saved, task}
-        )
-
         {:noreply,
          socket
          |> put_flash(:info, "Task created successfully")
