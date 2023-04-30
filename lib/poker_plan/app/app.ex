@@ -10,19 +10,21 @@ defmodule PokerPlan.App do
     |> Round.get()
   end
 
-  def current_task_info(id) when is_integer(id) do
-    case round_info(id).current_task do
-      nil -> nil
-      pid -> PokerPlan.Rounds.CurrentTask.get(pid)
+  def current_task(id) when is_integer(id) do
+    round_info = round_info(id)
+
+    case round_info.current_task_id do
+      nil ->
+        nil
+
+      id ->
+        round_info.round.tasks
+        |> Enum.find(fn x -> x.id == id end)
     end
   end
 
-  def current_task(id) when is_integer(id) do
-    current_task_info(id).task
-  end
-
   def current_task_users_status(id) when is_integer(id) do
-    for {k, v} <- current_task_info(id).estimates,
+    for {k, v} <- round_info(id).current_task_estimates,
         into: %{},
         do: {
           k,
@@ -34,11 +36,15 @@ defmodule PokerPlan.App do
   end
 
   def current_task_estimates(id) when is_integer(id) do
-    IO.inspect(current_task_info(id).task, label: "current_task_info(id).task")
+    case current_task(id) do
+      nil ->
+        nil
 
-    case current_task_info(id).task do
-      %PokerPlan.Data.Task{state: "finished"} -> current_task_info(id).estimates
-      _ -> nil
+      task ->
+        case task.state do
+          "finished" -> round_info(id).current_task_estimates
+          _ -> nil
+        end
     end
   end
 
@@ -46,6 +52,8 @@ defmodule PokerPlan.App do
     round.id
     |> round_info_pid()
     |> Round.add_user(user)
+
+    refresh_cache(round.id)
   end
 
   def create_task(%{} = attrs) do
@@ -53,6 +61,16 @@ defmodule PokerPlan.App do
     |> PokerPlan.Data.Task.changeset(attrs)
     |> Repo.insert()
     |> refresh_cache(:task_created)
+  end
+
+  def update_task(task_id, %{} = attrs) when is_integer(task_id) do
+    PokerPlan.Data.Task
+    |> Repo.get(task_id)
+    |> update_task(attrs)
+  end
+
+  def change_task(%PokerPlan.Data.Task{} = task, attrs \\ %{}) do
+    PokerPlan.Data.Task.changeset(task, attrs)
   end
 
   def update_task(%PokerPlan.Data.Task{} = task, %{} = attrs) do
@@ -63,7 +81,6 @@ defmodule PokerPlan.App do
   end
 
   def start_task(%PokerPlan.Data.Task{} = task) do
-    # Round.start_task(task)
     task.round_id
     |> round_info_pid()
     |> Round.set_current_task(task)
@@ -73,22 +90,32 @@ defmodule PokerPlan.App do
 
   def estimate_task(%PokerPlan.Data.User{} = user, %PokerPlan.Data.Task{} = task, value)
       when is_integer(value) do
-    current_task_info_pid(task.round_id)
-    |> PokerPlan.Rounds.CurrentTask.vote(user.id, value)
+    round_info_pid(task.round_id)
+    |> Round.estimate_current_task(user, value)
   end
 
-  def get_round_tasks(%PokerPlan.Data.Round{} = round) do
+  def round_tasks(%PokerPlan.Data.Round{} = round) do
     Round.get(round_info_pid(round.id)).round.tasks
   end
 
-  # def reload_round(id) do
-  #   case Registry.lookup(PokerPlan.RoundRegistry, id) do
-  #     [] -> nil
-  #     [{pid, nil}] -> Round.reload_round(pid)
-  #   end
-  # end
+  def delete_task(task_id) when is_integer(task_id) do
+    Repo.get!(PokerPlan.Data.Task, task_id)
+    |> delete_task()
+  end
 
-  defp refresh_cache({:ok, %PokerPlan.Data.Task{} = task}, _msg) do
+  def delete_task(%PokerPlan.Data.Task{} = task) do
+    Repo.delete(task)
+    |> refresh_cache(:task_deleted)
+  end
+
+  def create_estimation(task_id, user_id, value)
+      when is_integer(task_id) and is_integer(user_id) and is_integer(value) do
+    %PokerPlan.Data.Estimation{}
+    |> PokerPlan.Data.Estimation.changeset(%{task_id: task_id, user_id: user_id, value: value})
+    |> Repo.insert()
+  end
+
+  defp refresh_cache({:ok, task}, _) do
     refresh_cache(task.round_id)
 
     {:ok, task}

@@ -2,19 +2,45 @@ defmodule PokerPlanWeb.RoundLive.Show do
   use PokerPlanWeb, :live_view
 
   alias PokerPlan.{Rounds, Tasks}
+  alias PokerPlan.App
 
   def current_task(assigns) do
     ~H"""
-    <div class="bg-gray-100 p-4">
-      <p><%= @current_task_info.task.title %></p>
+    <br />
+
+    <div class="bg-gray-100 rounded-lg border border-gray-400 p-4">
+      <div class="mb-3"><span>Current task: </span><b><%= @current_task.title %></b></div>
       <div class="btn-group">
-        <.button phx-click="estimate_task" phx-value-points={1}>1</.button>
-        <.button phx-click="estimate_task" phx-value-points={2}>2</.button>
-        <.button phx-click="estimate_task" phx-value-points={3}>3</.button>
+        <.estimation_button value={1}></.estimation_button>
+        <.estimation_button value={2}></.estimation_button>
+        <.estimation_button value={3}></.estimation_button>
+        <.estimation_button value={5}></.estimation_button>
+        <.estimation_button value={8}></.estimation_button>
       </div>
     </div>
     """
   end
+
+  def estimation_button(assigns) do
+    # class="bg-blue-500 hover:bg-blue-400 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded"
+    ~H"""
+    <button
+      phx-click="estimate_task"
+      phx-value-points={@value}
+      class="bg-gray-500 hover:bg-gray-400 text-white font-bold py-2 px-4 border-b-4 border-gray-700 hover:border-gray-500 rounded"
+    >
+      <%= @value %>
+    </button>
+    """
+  end
+
+  # def handle_event("hover", %{hover: true}, socket) do
+  #   {:noreply, assign(socket, hovering: true)}
+  # end
+
+  # def handle_event("hover", %{hover: false}, socket) do
+  #   {:noreply, assign(socket, hovering: false)}
+  # end
 
   def users_list(assigns) do
     ~H"""
@@ -28,7 +54,7 @@ defmodule PokerPlanWeb.RoundLive.Show do
     order = ["doing", "idle", "hold", "finished"]
 
     tasks =
-      Enum.sort_by(assigns[:round_info].round.tasks, fn task ->
+      Enum.sort_by(assigns.tasks, fn task ->
         Enum.find_index(order, &(&1 == task.state))
       end)
 
@@ -46,20 +72,17 @@ defmodule PokerPlanWeb.RoundLive.Show do
     """
   end
 
-  def user_estimation(user, current_task_info) do
-    case current_task_info do
-      nil ->
-        ""
-
-      current_task_info ->
-        value = current_task_info.estimates |> Map.get(user.id)
-
-        case value do
-          true -> "+"
-          false -> "-"
-          nil -> "nil"
-        end
-    end
+  def estimations_report(assigns) do
+    ~H"""
+    <.table id="estimations_report" rows={@users}>
+      <:col :let={user} label="User">
+        <%= user.username %>
+      </:col>
+      <:col :let={user} label="Estimation">
+        <%= Map.get(@current_task_estimates, user.id) %>
+      </:col>
+    </.table>
+    """
   end
 
   @impl true
@@ -67,14 +90,8 @@ defmodule PokerPlanWeb.RoundLive.Show do
     Phoenix.PubSub.subscribe(PokerPlan.PubSub, "round:#{round_id}")
 
     round_id = String.to_integer(round_id)
-    round_info = PokerPlan.Rounds.get_round!(round_id)
-    PokerPlan.Rounds.add_user(round_info.round, socket.assigns.current_user)
-
-    current_task_info =
-      case round_info.current_task do
-        nil -> nil
-        pid -> PokerPlan.Rounds.CurrentTask.get(pid)
-      end
+    round_info = App.round_info(round_id)
+    App.add_user_to_round(round_info.round, socket.assigns.current_user)
 
     socket =
       socket
@@ -82,10 +99,15 @@ defmodule PokerPlanWeb.RoundLive.Show do
         page_title: page_title(socket.assigns.live_action),
         round_info: round_info,
         task: %Task{round_id: round_id},
-        current_task_info: current_task_info
+        current_task: App.current_task(round_id),
+        current_task_users_status: App.current_task_users_status(round_id),
+        current_task_estimates: nil,
+        tasks: round_info.round.tasks,
+        users: round_info.users
       )
-      |> stream(:tasks, round_info.round.tasks)
-      |> stream(:users, round_info.users)
+
+    # |> stream(:tasks, round_info.round.tasks)
+    # |> stream(:users, round_info.users)
 
     {:ok, socket}
   end
@@ -93,76 +115,6 @@ defmodule PokerPlanWeb.RoundLive.Show do
   @impl true
   def handle_params(params, _url, socket) do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
-  end
-
-  @impl true
-  def handle_info({:user_joined, user}, socket) do
-    {:noreply, stream_insert(socket, :users, user, at: 0)}
-  end
-
-  @impl true
-  def handle_info({:task_created, task}, socket) do
-    {:noreply, socket |> stream_insert(:tasks, task, at: 0)}
-  end
-
-  @impl true
-  def handle_info({:round_refreshed, round_info}, socket) do
-    {:noreply, assign(socket, :round_info, round_info)}
-  end
-
-  @impl true
-  def handle_info({:task_updated, task}, socket) do
-    previous = Enum.find(socket.assigns.round_info.round.tasks, fn t -> t.id == task.id end)
-
-    {
-      :noreply,
-      socket
-      #  |> stream_insert(:tasks, task)}
-      # }
-      # |> stream_insert(:tasks, task)
-      # }
-
-      # |> stream_delete(:tasks, previous)
-      |> stream_insert(:tasks, task, at: -1)
-    }
-  end
-
-  @impl true
-  def handle_info(:current_task_deleted, socket) do
-    {:noreply, assign(socket, :current_task_info, nil)}
-  end
-
-  @impl true
-  def handle_info({:task_deleted, task}, socket) do
-    # current_task_id =
-    #   case(socket.assigns.current_task_info) do
-    #     nil ->
-    #       nil
-
-    #     task_info ->
-    #       task_info.task.id
-    #   end
-
-    # task_id = task.id
-
-    # socket =
-    #   case current_task_id do
-    #     ^task_id -> assign(socket, :current_task_info, nil)
-    #     _ -> socket
-    #   end
-
-    {:noreply,
-     socket
-     #  |> stream_insert(:tasks, task)}
-
-     |> stream_delete(:tasks, task)}
-
-    #  |> stream_insert(:tasks, task, at: -1)}
-  end
-
-  @impl true
-  def handle_info({:task_started, current_task_info}, socket) do
-    {:noreply, assign(socket, :current_task_info, current_task_info)}
   end
 
   defp page_title(:show), do: "Show Round"
@@ -189,6 +141,30 @@ defmodule PokerPlanWeb.RoundLive.Show do
     |> assign(:page_title, "New Task")
   end
 
+  def handle_info(
+        {:round_refreshed, %{round: %{id: round_id, tasks: tasks}} = round_info},
+        socket
+      ) do
+    {:noreply,
+     socket
+     |> assign(
+       round_info: round_info,
+       current_task: App.current_task(round_id),
+       current_task_users_status: App.current_task_users_status(round_id),
+       current_task_estimates: App.current_task_estimates(round_id),
+       #  round_info.round.tasks
+       #  |> Enum.find(fn x -> x.id == round_info.current_task_id end),
+       tasks: tasks,
+       users: round_info.users
+     )}
+  end
+
+  # def handle_info({:current_task_updated, current_task_id, current_task_estimates}, socket) do
+  #   {:noreply,
+  #    socket
+  #    |> assign(current_task_id: current_task_id, current_task_estimates: current_task_estimates)}
+  # end
+
   # defp apply_action(socket, :start_task, %{"round_id" => round_id, "id" => id}) do
   def handle_event("start_task", %{"id" => task_id}, socket) do
     # round_id = String.to_integer(round_id)
@@ -198,16 +174,16 @@ defmodule PokerPlanWeb.RoundLive.Show do
       socket.assigns.round_info.round.tasks
       |> Enum.find(fn t -> t.id == task_id end)
 
-    PokerPlan.Rounds.start_task(task)
+    App.start_task(task)
 
     {:noreply, socket}
     # assign(socket, :round_info, round_info)
   end
 
   def handle_event("delete_task", %{"id" => id}, socket) do
-    task = Tasks.get_task!(String.to_integer(id))
+    # task = Tasks.get_task!(String.to_integer(id))
 
-    case Tasks.delete_task(task) do
+    case App.delete_task(String.to_integer(id)) do
       {:ok, _task} ->
         {:noreply,
          socket
@@ -224,8 +200,9 @@ defmodule PokerPlanWeb.RoundLive.Show do
 
   def handle_event("estimate_task", %{"points" => points}, socket) do
     points = String.to_integer(points)
-    pid = socket.assigns.round_info.current_task
-    PokerPlan.Rounds.CurrentTask.vote(pid, socket.assigns.current_user.id, points)
+    # pid = socket.assigns.current_task
+    # # PokerPlan.Rounds.Rpi.vote(pid, socket.assigns.current_user.id, points)
+    App.estimate_task(socket.assigns.current_user, socket.assigns.current_task, points)
     {:noreply, socket}
   end
 

@@ -1,7 +1,7 @@
 defmodule PokerPlanWeb.TaskLive.FormComponent do
   use PokerPlanWeb, :live_component
 
-  alias PokerPlan.Tasks
+  alias PokerPlan.{App, Tasks}
 
   @impl true
   def render(assigns) do
@@ -26,7 +26,7 @@ defmodule PokerPlanWeb.TaskLive.FormComponent do
 
   @impl true
   def update(%{task: task} = assigns, socket) do
-    changeset = Tasks.change_task(task)
+    changeset = App.change_task(task)
 
     {:ok,
      socket
@@ -38,7 +38,7 @@ defmodule PokerPlanWeb.TaskLive.FormComponent do
   def handle_event("validate", %{"task" => task_params}, socket) do
     changeset =
       socket.assigns.task
-      |> Tasks.change_task(task_params)
+      |> App.change_task(task_params)
       |> Map.put(:action, :validate)
 
     {:noreply, assign_form(socket, changeset)}
@@ -49,7 +49,7 @@ defmodule PokerPlanWeb.TaskLive.FormComponent do
   end
 
   defp save_task(socket, :edit, task_params) do
-    case Tasks.update_task(socket.assigns.task, task_params) do
+    case App.update_task(socket.assigns.task, task_params) do
       {:ok, task} ->
         {:noreply,
          socket
@@ -62,7 +62,7 @@ defmodule PokerPlanWeb.TaskLive.FormComponent do
   end
 
   defp save_task(socket, :new_task, task_params) do
-    case Tasks.create_task(task_params) do
+    case App.create_task(task_params) do
       {:ok, task} ->
         {:noreply,
          socket

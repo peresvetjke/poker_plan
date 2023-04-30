@@ -5,7 +5,7 @@ defmodule PokerPlan.Repo.Migrations.CreateTasks do
     create table(:tasks) do
       add(:state, :string, null: false, default: "idle")
       add(:title, :string)
-      add(:round_id, references(:rounds, on_delete: :nothing))
+      add(:round_id, references(:rounds, on_delete: :delete_all))
 
       timestamps()
     end

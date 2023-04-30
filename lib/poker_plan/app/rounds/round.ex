@@ -1,6 +1,7 @@
 defmodule PokerPlan.Rounds.Round do
   use GenServer
 
+  import Ecto.Query, only: [from: 2]
   # Client
 
   def start_link(%PokerPlan.Data.Round{} = round) do
@@ -9,7 +10,8 @@ defmodule PokerPlan.Rounds.Round do
       %{
         round: round,
         users: [],
-        current_task: nil
+        current_task_id: nil,
+        current_task_estimates: %{}
       },
       name: {:via, Registry, {PokerPlan.RoundRegistry, round.id}}
     )
@@ -27,12 +29,12 @@ defmodule PokerPlan.Rounds.Round do
     GenServer.cast(pid, {:add_user, user})
   end
 
-  def add_task(pid, %PokerPlan.Data.Task{} = task) do
-    GenServer.cast(pid, {:add_task, task})
-  end
-
   def set_current_task(pid, %PokerPlan.Data.Task{} = current_task) do
     GenServer.cast(pid, {:set_current_task, current_task})
+  end
+
+  def estimate_current_task(pid, %PokerPlan.Data.User{} = user, value) do
+    GenServer.cast(pid, {:estimate_current_task, user, value})
   end
 
   def clear_current_task(pid) do
@@ -68,78 +70,108 @@ defmodule PokerPlan.Rounds.Round do
   end
 
   @impl GenServer
-  def handle_cast({:add_user, %PokerPlan.Data.User{} = user}, round_info) do
-    round_info =
-      case Enum.any?(round_info.users, fn u -> u.id == user.id end) do
-        true ->
-          round_info
+  def handle_cast(
+        {:add_user, %PokerPlan.Data.User{} = user},
+        %{current_task_estimates: current_task_estimates, users: users} = round_info
+      ) do
+    case Enum.any?(round_info.users, fn u -> u.id == user.id end) do
+      true ->
+        {:noreply, round_info}
 
-        false ->
-          Phoenix.PubSub.broadcast(
-            PokerPlan.PubSub,
-            "round:#{round_info.round.id}",
-            {:user_joined, user}
-          )
+      false ->
+        Phoenix.PubSub.broadcast(
+          PokerPlan.PubSub,
+          "round:#{round_info.round.id}",
+          {:round_refreshed, round_info}
+        )
 
-          Map.put(round_info, :users, [user | round_info.users])
-      end
+        {:noreply,
+         %{
+           round_info
+           | users: [user | round_info.users],
+             current_task_estimates: Map.put(current_task_estimates, user.id, nil)
+         }}
 
-    case round_info.current_task do
-      nil -> nil
-      pid -> PokerPlan.Rounds.CurrentTask.add_user(pid, user.id)
+        # round_info =
+        #   Map.put(round_info, :users, [user | round_info.users])
+        #   |> Map.put(:current_task_estimates, nil)
     end
-
-    {:noreply, round_info}
   end
-
-  # @impl GenServer
-  # def handle_cast({:add_task, %PokerPlan.Data.Task{} = task}, round_info) do
-  #   round_info =
-  #     case Enum.any?(round_info.users, fn u -> u.id == user.id end) do
-  #       true ->
-  #         round_info
-
-  #       false ->
-  #         Phoenix.PubSub.broadcast(
-  #           PokerPlan.PubSub,
-  #           "round:#{round_info.round.id}",
-  #           {:user_joined, user}
-  #         )
-
-  #         Map.put(round_info, :users, [user | round_info.users])
-  #     end
-
-  #   {:noreply, round_info}
-  # end
 
   @impl GenServer
   def handle_cast({:set_current_task, %PokerPlan.Data.Task{} = task}, round_info) do
-    case round_info.current_task do
-      nil -> nil
-      previous_task_pid -> PokerPlan.Rounds.CurrentTask.stop(previous_task_pid)
+    round_id = task.round_id
+
+    case round_info.current_task_id do
+      nil ->
+        nil
+
+      id ->
+        current_task =
+          round_info.round.tasks
+          |> Enum.find(fn x -> x.id == id end)
+
+        case current_task do
+          nil ->
+            nil
+
+          _ ->
+            case current_task.state do
+              "finished" -> nil
+              _ -> PokerPlan.App.update_task(id, %{state: "idle"})
+            end
+        end
     end
 
-    {:ok, task_pid} = PokerPlan.Rounds.CurrentTask.start_link(task, round_info.users)
-    # PokerPlan.Rounds.CurrentTask.start(task_pid)
-    task_info = PokerPlan.Rounds.CurrentTask.get(task_pid)
+    {:ok, task} = PokerPlan.App.update_task(task, %{state: "doing"})
 
-    Phoenix.PubSub.broadcast(
-      PokerPlan.PubSub,
-      "round:#{round_info.round.id}",
-      {:task_started, task_info}
-    )
-
-    {:noreply, Map.put(round_info, :current_task, task_pid)}
+    {:noreply, Map.put(round_info, :current_task_id, task.id)}
   end
 
   @impl GenServer
-  def handle_cast(:clear_current_task, round_info) do
+  def handle_cast(
+        {:estimate_current_task, user, value},
+        %{
+          current_task_estimates: current_task_estimates,
+          current_task_id: current_task_id,
+          round: round
+        } = round_info
+      )
+      when is_integer(value) do
+    estimates = Map.put(current_task_estimates, user.id, value)
+
+    if Map.values(estimates) |> Enum.all?() do
+      task =
+        round_info.round.tasks
+        |> Enum.find(fn x -> x.id == round_info.current_task_id end)
+
+      #  = PokerPlan.App.current_task(round.id)
+      # IO.inspect(current_task_estimates, label: "current_task_estimates")
+
+      Enum.each(estimates, fn {user_id, points} ->
+        PokerPlan.App.create_estimation(task.id, user.id, points)
+      end)
+
+      PokerPlan.App.update_task(task, %{state: "finished"})
+    end
+
     Phoenix.PubSub.broadcast(
       PokerPlan.PubSub,
       "round:#{round_info.round.id}",
-      :current_task_deleted
+      {:round_refreshed, round_info}
     )
 
-    {:noreply, Map.put(round_info, :current_task, nil)}
+    {:noreply, %{round_info | current_task_estimates: estimates}}
   end
+
+  # @impl GenServer
+  # def handle_cast(:clear_current_task, round_info) do
+  #   Phoenix.PubSub.broadcast(
+  #     PokerPlan.PubSub,
+  #     "round:#{round_info.round.id}",
+  #     :current_task_deleted
+  #   )
+
+  #   {:noreply, Map.put(round_info, :current_task, nil)}
+  # end
 end

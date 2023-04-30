@@ -1,6 +1,5 @@
 <.header>
   <%= @round_info.round.title %>
-  <:subtitle>This is a round record from your database.</:subtitle>
   <:actions>
     <.link patch={~p"/rounds/#{@round_info.round}/tasks/new"} phx-click={JS.push_focus()}>
       <.button>New Task</.button>
@@ -9,15 +8,16 @@
 </.header>
 
 <.current_task
-  :if={@current_task_info}
+  :if={@current_task}
   round_info={@round_info}
-  current_task_info={@current_task_info}
+  current_task={@current_task}
+  current_task_users_status={@current_task_users_status}
 >
 </.current_task>
 
-<.users_list round_info={@round_info} current_task_info={@current_task_info}></.users_list>
+<.users_list round_info={@round_info} current_task={@current_task}></.users_list>
 
-<.tasks_list round_info={@round_info}></.tasks_list>
+<.tasks_list tasks={@tasks}></.tasks_list>
 
 <.back navigate={~p"/rounds"}>Back to rounds</.back>
 
@@ -36,4 +36,14 @@
     task={@task || %Task{round_id: @round_info.round.id}}
     patch={~p"/rounds/#{@round_info.round}"}
   />
+</.modal>
+
+<.modal
+  :if={@current_task_estimates}
+  id="task-modal"
+  show
+  on_cancel={JS.patch(~p"/rounds/#{@round_info.round}")}
+>
+  <.estimations_report users={@users} current_task_estimates={@current_task_estimates}>
+  </.estimations_report>
 </.modal>
