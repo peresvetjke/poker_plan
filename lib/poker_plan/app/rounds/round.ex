@@ -99,29 +99,52 @@ defmodule PokerPlan.Rounds.Round do
   end
 
   @impl GenServer
-  def handle_cast({:set_current_task, %PokerPlan.Data.Task{} = task}, round_info) do
-    round_id = task.round_id
+  def handle_cast({:set_current_task, %PokerPlan.Data.Task{state: "doing"} = task}, round_info) do
+    round_info =
+      round_info
+      |> Map.put(:current_task_id, nil)
+      |> Map.put(:current_task_estimations, %{})
 
-    case round_info.current_task_id do
-      nil ->
-        nil
+    PokerPlan.App.update_task(task, %{state: "idle"})
 
-      id ->
-        current_task =
-          round_info.round.tasks
-          |> Enum.find(fn x -> x.id == id end)
+    {:noreply, round_info}
+  end
 
-        case current_task do
-          nil ->
-            nil
+  @impl GenServer
+  def handle_cast(
+        {:set_current_task, %PokerPlan.Data.Task{state: "idle"} = task},
+        %{current_task_id: current_task_id} = round_info
+      )
+      when is_nil(current_task_id) do
+    # round_info =
+    #   round_info
+    #   |> Map.put(:current_task_id, task.id)
+    #   |> Map.put(:current_task_estimations, %{})
 
-          _ ->
-            case current_task.state do
-              "finished" -> nil
-              _ -> PokerPlan.App.update_task(id, %{state: "idle"})
-            end
-        end
-    end
+    {:ok, task} = PokerPlan.App.update_task(task, %{state: "doing"})
+
+    {:noreply,
+     round_info
+     |> Map.put(:current_task_id, task.id)
+     |> Map.put(:current_task_estimations, %{})}
+  end
+
+  @impl GenServer
+  def handle_cast(
+        {:set_current_task, %PokerPlan.Data.Task{state: "idle"} = task},
+        %{current_task_id: current_task_id} = round_info
+      )
+      when is_integer(current_task_id) do
+    previous_task =
+      round_info.round.tasks
+      |> Enum.find(fn x -> x.id == current_task_id end)
+
+    PokerPlan.App.update_task(previous_task, %{state: "idle"})
+
+    round_info =
+      round_info
+      |> Map.put(:current_task_id, task.id)
+      |> Map.put(:current_task_estimations, nil)
 
     {:ok, task} = PokerPlan.App.update_task(task, %{state: "doing"})
 
@@ -140,20 +163,33 @@ defmodule PokerPlan.Rounds.Round do
       when is_integer(value) do
     estimates = Map.put(current_task_estimates, user.id, value)
 
-    if Map.values(estimates) |> Enum.all?() do
-      task =
-        round_info.round.tasks
-        |> Enum.find(fn x -> x.id == round_info.current_task_id end)
+    round_info =
+      if Map.values(estimates) |> Enum.all?() do
+        task =
+          round_info.round.tasks
+          |> Enum.find(fn x -> x.id == round_info.current_task_id end)
 
-      #  = PokerPlan.App.current_task(round.id)
-      # IO.inspect(current_task_estimates, label: "current_task_estimates")
+        Enum.each(estimates, fn {user_id, points} ->
+          PokerPlan.App.create_estimation(task.id, user.id, points)
+        end)
 
-      Enum.each(estimates, fn {user_id, points} ->
-        PokerPlan.App.create_estimation(task.id, user.id, points)
-      end)
+        PokerPlan.App.update_task(task, %{state: "finished"})
 
-      PokerPlan.App.update_task(task, %{state: "finished"})
-    end
+        Phoenix.PubSub.broadcast(
+          PokerPlan.PubSub,
+          "round:#{round_info.round.id}",
+          {:task_estimation_report, estimates}
+        )
+
+        round_info
+        |> Map.put(:current_task_estimates, %{})
+        |> Map.put(:current_task_id, nil)
+      else
+        round_info
+        # IO.inspect(round_info.current_task_id, label: "round_info.current_task_id (in block)")
+      end
+
+    # IO.inspect(round_info.current_task_id, label: "round_info.current_task_id (out of block)")
 
     Phoenix.PubSub.broadcast(
       PokerPlan.PubSub,
@@ -161,7 +197,7 @@ defmodule PokerPlan.Rounds.Round do
       {:round_refreshed, round_info}
     )
 
-    {:noreply, %{round_info | current_task_estimates: estimates}}
+    {:noreply, round_info}
   end
 
   # @impl GenServer

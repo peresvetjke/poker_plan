@@ -10,6 +10,7 @@ defmodule PokerPlan.Repo.Migrations.CreateEstimations do
       timestamps()
     end
 
+    create unique_index(:estimations, [:task_id, :user_id])
     create index(:estimations, [:task_id])
     create index(:estimations, [:user_id])
   end

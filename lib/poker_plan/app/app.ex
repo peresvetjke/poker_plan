@@ -48,6 +48,14 @@ defmodule PokerPlan.App do
     end
   end
 
+  def task_estimates(id) when is_integer(id) do
+    query = from e in PokerPlan.Data.Estimation, where: e.task_id == ^id
+    estimates = Repo.all(query)
+
+    Enum.reduce(estimates, %{}, fn e, acc -> Map.put(acc, e.user_id, e.value) end)
+    # estimates = PokerPlan.Data.Estimation
+  end
+
   def add_user_to_round(%PokerPlan.Data.Round{} = round, %PokerPlan.Data.User{} = user) do
     round.id
     |> round_info_pid()

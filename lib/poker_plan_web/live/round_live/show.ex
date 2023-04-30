@@ -66,7 +66,11 @@ defmodule PokerPlanWeb.RoundLive.Show do
         <.link phx-click="delete_task" phx-value-id={task.id}>Delete</.link>
       </:action>
       <:action :let={task}>
-        <.link phx-click="start_task" phx-value-id={task.id}>Start</.link>
+        <%= if task.state == "finished" do %>
+          <.link phx-click="result" phx-value-id={task.id}>Result</.link>
+        <% else %>
+          <.link phx-click="start_task" phx-value-id={task.id}>Start</.link>
+        <% end %>
       </:action>
     </.table>
     """
@@ -151,12 +155,17 @@ defmodule PokerPlanWeb.RoundLive.Show do
        round_info: round_info,
        current_task: App.current_task(round_id),
        current_task_users_status: App.current_task_users_status(round_id),
-       current_task_estimates: App.current_task_estimates(round_id),
+       #  current_task_estimates: nil,
+       #  current_task_estimates: App.current_task_estimates(round_id),
        #  round_info.round.tasks
        #  |> Enum.find(fn x -> x.id == round_info.current_task_id end),
        tasks: tasks,
        users: round_info.users
      )}
+  end
+
+  def handle_info({:task_estimation_report, estimates}, socket) do
+    {:noreply, socket |> assign(current_task_estimates: estimates)}
   end
 
   # def handle_info({:current_task_updated, current_task_id, current_task_estimates}, socket) do
@@ -177,6 +186,17 @@ defmodule PokerPlanWeb.RoundLive.Show do
     App.start_task(task)
 
     {:noreply, socket}
+    # assign(socket, :round_info, round_info)
+  end
+
+  def handle_event("result", %{"id" => task_id}, socket) do
+    task_id = String.to_integer(task_id)
+
+    # task =
+    #   socket.assigns.round_info.round.tasks
+    #   |> Enum.find(fn t -> t.id == task_id end)
+
+    {:noreply, assign(socket, current_task_estimates: App.task_estimates(task_id))}
     # assign(socket, :round_info, round_info)
   end
 
