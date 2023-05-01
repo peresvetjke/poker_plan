@@ -57,9 +57,12 @@
       <.button phx-disable-with="Signing in..." class="w-full">
         Sign in <span aria-hidden="true">→</span>
       </.button>
+      <%= for link <- PowAssent.Phoenix.ViewHelpers.provider_links(@conn) do %>
+        <br />
+        <button class="w-full">
+          <%= link %>
+        </button>
+      <% end %>
     </:actions>
   </.simple_form>
 </div>
-
-<%= for link <- PowAssent.Phoenix.ViewHelpers.provider_links(@conn),
-        do: Phoenix.HTML.Tag.content_tag(:span, link) %>

@@ -7,6 +7,11 @@ defmodule PokerPlan.Data.User do
     extensions: [PowResetPassword, PowEmailConfirmation]
 
   schema "users" do
+    has_many :user_identities,
+             PokerPlan.Data.UserIdentity,
+             on_delete: :delete_all,
+             foreign_key: :user_id
+
     field(:username, :string)
     field(:is_spectator, :boolean)
     pow_user_fields()
