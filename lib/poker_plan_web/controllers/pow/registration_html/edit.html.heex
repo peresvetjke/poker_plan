@@ -43,3 +43,6 @@
   </.simple_form>
   <.back navigate={~p"/rounds"}>Back to rounds</.back>
 </div>
+
+<%= for link <- PowAssent.Phoenix.ViewHelpers.provider_links(@conn),
+        do: Phoenix.HTML.Tag.content_tag(:span, link) %>

@@ -3,20 +3,52 @@
     Sign in
     <:subtitle>
       Don't have an account?
-      <.link navigate={Pow.Phoenix.Routes.path_for(@conn, Pow.Phoenix.RegistrationController, :new)} class="font-semibold text-brand hover:underline">
+      <.link
+        navigate={Pow.Phoenix.Routes.path_for(@conn, Pow.Phoenix.RegistrationController, :new)}
+        class="font-semibold text-brand hover:underline"
+      >
         Register
-      </.link> now.
+      </.link>
+      now.
     </:subtitle>
   </.header>
 
   <.simple_form :let={f} for={@changeset} as={:user} action={@action} phx-update="ignore">
-    <.error :if={@changeset.action}>Oops, something went wrong! Please check the errors below.</.error>
-    <.input field={f[Pow.Ecto.Schema.user_id_field(@changeset)]} type={Pow.Ecto.Schema.user_id_field(@changeset) == :email && "email" || "text"} label={Phoenix.Naming.humanize(Pow.Ecto.Schema.user_id_field(@changeset))} required />
+    <.error :if={@changeset.action}>
+      Oops, something went wrong! Please check the errors below.
+    </.error>
+    <.input
+      field={f[Pow.Ecto.Schema.user_id_field(@changeset)]}
+      type={(Pow.Ecto.Schema.user_id_field(@changeset) == :email && "email") || "text"}
+      label={Phoenix.Naming.humanize(Pow.Ecto.Schema.user_id_field(@changeset))}
+      required
+    />
     <.input field={f[:password]} type="password" label="Password" value={nil} required />
 
-    <:actions :let={f} :if={Pow.Plug.extension_enabled?(@conn, PowPersistentSession) || Pow.Plug.extension_enabled?(@conn, PowResetPassword)}>
-      <.input :if={Pow.Plug.extension_enabled?(@conn, PowPersistentSession)} field={f[:persistent_session]} type="checkbox" label="Keep me logged in" />
-      <.link :if={Pow.Plug.extension_enabled?(@conn, PowResetPassword)} href={Pow.Phoenix.Routes.path_for(@conn, PowResetPassword.Phoenix.ResetPasswordController, :new)} class="text-sm font-semibold">
+    <:actions
+      :let={f}
+      :if={
+        Pow.Plug.extension_enabled?(@conn, PowPersistentSession) ||
+          Pow.Plug.extension_enabled?(@conn, PowResetPassword)
+      }
+    >
+      <.input
+        :if={Pow.Plug.extension_enabled?(@conn, PowPersistentSession)}
+        field={f[:persistent_session]}
+        type="checkbox"
+        label="Keep me logged in"
+      />
+      <.link
+        :if={Pow.Plug.extension_enabled?(@conn, PowResetPassword)}
+        href={
+          Pow.Phoenix.Routes.path_for(
+            @conn,
+            PowResetPassword.Phoenix.ResetPasswordController,
+            :new
+          )
+        }
+        class="text-sm font-semibold"
+      >
         Forgot your password?
       </.link>
     </:actions>
@@ -28,3 +60,6 @@
     </:actions>
   </.simple_form>
 </div>
+
+<%= for link <- PowAssent.Phoenix.ViewHelpers.provider_links(@conn),
+        do: Phoenix.HTML.Tag.content_tag(:span, link) %>
