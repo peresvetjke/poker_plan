@@ -3,7 +3,7 @@ defmodule PokerPlan.Repo.Migrations.CreateUsers do
 
   def change do
     create table(:users) do
-      add(:username, :string, null: false)
+      add(:username, :string)
       add(:email, :string, null: false)
       add(:password_hash, :string)
       add(:is_spectator, :boolean)

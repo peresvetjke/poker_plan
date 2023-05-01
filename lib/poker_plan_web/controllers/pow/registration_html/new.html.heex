@@ -40,3 +40,6 @@
     </:actions>
   </.simple_form>
 </div>
+
+<%= for link <- PowAssent.Phoenix.ViewHelpers.provider_links(@conn),
+        do: Phoenix.HTML.Tag.content_tag(:span, link) %>
