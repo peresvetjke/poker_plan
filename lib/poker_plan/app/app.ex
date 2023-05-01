@@ -4,6 +4,17 @@ defmodule PokerPlan.App do
   alias PokerPlan.Repo
   alias PokerPlan.Rounds.Round
 
+  def username(%PokerPlan.Data.User{username: username, email: email} = user) do
+    case username do
+      nil ->
+        [name | _] = email |> String.split("@")
+        name
+
+      name ->
+        name
+    end
+  end
+
   def get_round(id) when is_integer(id) do
     Repo.get!(PokerPlan.Data.Round, id)
   end

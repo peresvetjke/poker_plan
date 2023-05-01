@@ -41,7 +41,7 @@ defmodule PokerPlanWeb.RoundLive.Show do
 
     ~H"""
     <.table id="users" rows={sorted_users}>
-      <:col :let={user} label="User"><%= user.username %></:col>
+      <:col :let={user} label="User"><%= App.username(user) %></:col>
 
       <:col :let={user}>
         <%= if user.is_spectator do %>
@@ -116,7 +116,7 @@ defmodule PokerPlanWeb.RoundLive.Show do
     ~H"""
     <.table id="estimations_report" rows={sorted_users}>
       <:col :let={user} label="User">
-        <%= user.username %>
+        <%= App.username(user) %>
       </:col>
       <:col :let={user} label="Estimation">
         <%= Map.get(@task_estimates, user.id) %>
