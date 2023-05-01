@@ -6,6 +6,7 @@ defmodule PokerPlan.Repo.Migrations.CreateUsers do
       add(:username, :string, null: false)
       add(:email, :string, null: false)
       add(:password_hash, :string)
+      add(:is_spectator, :boolean)
 
       timestamps()
     end

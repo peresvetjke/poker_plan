@@ -1,4 +1,9 @@
 defmodule PokerPlan.Rounds do
+  @registry PokerPlan.RoundRegistry
+  @enforce_keys ~w[id title tasks]a
+
+  defstruct [:id, :title, :tasks, users: []]
+
   @moduledoc """
   The Rounds context.
   """
@@ -6,7 +11,7 @@ defmodule PokerPlan.Rounds do
   import Ecto.Query, warn: false
 
   alias PokerPlan.Repo
-  alias PokerPlan.Data.Round
+  alias PokerPlan.Data.{Round, Task, User}
 
   @doc """
   Returns the list of rounds.
@@ -35,7 +40,10 @@ defmodule PokerPlan.Rounds do
       ** (Ecto.NoResultsError)
 
   """
-  def get_round!(id), do: Repo.get!(Round, id)
+
+  def get_round!(id) when is_integer(id) do
+    Repo.get!(PokerPlan.Data.Round, id)
+  end
 
   @doc """
   Creates a round.
@@ -100,5 +108,11 @@ defmodule PokerPlan.Rounds do
   """
   def change_round(%Round{} = round, attrs \\ %{}) do
     Round.changeset(round, attrs)
+  end
+
+  defp load_round_with_tasks(id) when is_integer(id) do
+    Round
+    |> Repo.get!(id)
+    |> Repo.preload(:tasks)
   end
 end

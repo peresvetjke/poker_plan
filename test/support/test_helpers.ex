@@ -8,6 +8,7 @@ defmodule PokerPlan.TestHelpers do
       attrs
       |> Map.put_new(:email, "user@example.com")
       |> Map.put_new(:username, "user#{Base.encode16(:crypto.strong_rand_bytes(8))}")
+      |> Map.put_new(:is_spectator, false)
       |> Map.put_new(:password, "supersecret")
       |> Map.put_new(:password_confirmation, "supersecret")
 
@@ -28,7 +29,7 @@ defmodule PokerPlan.TestHelpers do
   end
 
   @spec insert_task(list | map) :: any
-  def insert_task(%{round: _round} = attrs) do
+  def insert_task(%{round_id: _round_id} = attrs) do
     changes =
       attrs
       |> Map.put_new(:title, "Some task")
@@ -40,6 +41,6 @@ defmodule PokerPlan.TestHelpers do
 
   def insert_task() do
     round = insert_round()
-    insert_task(%{round: round})
+    insert_task(%{round_id: round.id})
   end
 end

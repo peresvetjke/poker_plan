@@ -13,7 +13,7 @@ defmodule PokerPlan do
       import Ecto
       import Ecto.Changeset
 
-      alias PokerPlan.Data.{Round, Task, User}
+      alias PokerPlan.Data.{Estimation, Round, Task, User}
     end
   end
 
