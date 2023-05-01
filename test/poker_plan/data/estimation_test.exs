@@ -13,8 +13,8 @@ defmodule PokerPlan.Data.EstimationTest do
   test "changeset with valid attributes", %{task: task, user: user} do
     attrs =
       @valid_attrs
-      |> Map.put(:task, task)
-      |> Map.put(:user, user)
+      |> Map.put(:task_id, task.id)
+      |> Map.put(:user_id, user.id)
 
     changeset = Estimation.changeset(%Estimation{}, attrs)
     assert changeset.valid?

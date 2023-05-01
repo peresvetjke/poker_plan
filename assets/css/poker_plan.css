@@ -1,0 +1,25 @@
+.button-style {
+  background-color: transparent;
+  color: black;
+  font-weight: bold;
+  border: 1px solid black;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s;
+}
+
+.button-style-set {
+  background-color: green;
+  color: white;
+  font-weight: bold;
+  border: 1px solid black;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s;
+}
+
+.button-style:hover {
+  background-color: gray;
+  color: white;
+  border-color: transparent;
+}

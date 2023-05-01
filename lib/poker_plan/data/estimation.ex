@@ -1,7 +1,7 @@
 defmodule PokerPlan.Data.Estimation do
   use PokerPlan, :model
 
-  @required_fields ~w(value)a
+  @required_fields ~w(value task_id user_id)a
   @optional_fields ~w()a
 
   schema "estimations" do
