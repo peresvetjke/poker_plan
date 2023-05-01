@@ -8,6 +8,7 @@ defmodule PokerPlan.TestHelpers do
       attrs
       |> Map.put_new(:email, "user@example.com")
       |> Map.put_new(:username, "user#{Base.encode16(:crypto.strong_rand_bytes(8))}")
+      |> Map.put_new(:is_spectator, false)
       |> Map.put_new(:password, "supersecret")
       |> Map.put_new(:password_confirmation, "supersecret")
 

@@ -26,6 +26,12 @@
     />
     <.input field={f[:password]} type="password" label="Password" required />
     <.input field={f[:password_confirmation]} type="password" label="Confirm password" required />
+    <.input
+      field={f[:is_spectator]}
+      type="checkbox"
+      label="I am moderator (and not going to estimate tasks)"
+      value="false"
+    />
 
     <:actions>
       <.button phx-disable-with="Registering..." class="w-full">

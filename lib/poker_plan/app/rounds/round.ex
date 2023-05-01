@@ -34,8 +34,11 @@ defmodule PokerPlan.Rounds.Round do
   end
 
   def estimate_current_task(pid, %PokerPlan.Data.User{} = user, value) do
-    IO.inspect(value, label: "casting estimate_current_task, value")
     GenServer.cast(pid, {:estimate_current_task, user, value})
+  end
+
+  def remove_user_from_round(pid, user_id) when is_integer(user_id) do
+    GenServer.cast(pid, {:remove_user_from_round, user_id})
   end
 
   def clear_current_task(pid) do
@@ -245,6 +248,20 @@ defmodule PokerPlan.Rounds.Round do
 
     # {:noreply, %{round_info | current_task_estimates: estimates}}
     # {:noreply, round_info}
+  end
+
+  @impl GenServer
+  def handle_cast(
+        {:remove_user_from_round, user_id},
+        %{current_task_estimates: current_task_estimates, users: users} = round_info
+      ) do
+    # IO.inspect("removing users...")
+    IO.inspect(users |> length())
+    # IO.inspect(users, label: "users")
+    users = Enum.reject(users, fn u -> u.id == user_id end)
+    IO.inspect(users |> length())
+    current_task_estimates = Map.delete(current_task_estimates, user_id)
+    {:noreply, %{round_info | users: users, current_task_estimates: current_task_estimates}}
   end
 
   # @impl GenServer

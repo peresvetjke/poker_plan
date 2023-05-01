@@ -37,6 +37,11 @@ defmodule PokerPlan.AppTest do
     assert App.current_task_users_status(round.id) == %{user1.id => false, user2.id => false}
     App.estimate_task(user1, task2, 1)
     assert App.current_task_users_status(round.id) == %{user1.id => true, user2.id => false}
+    App.remove_user_from_round(user1.id, round.id)
+    round_info = App.round_info(round.id)
+    assert Enum.sort(round_info.users) == [user2]
+    assert App.current_task_users_status(round.id) == %{user2.id => false}
+    App.estimate_task(user1, task2, 1)
     assert App.current_task_user_estimation_value(round, user1) == 1
     App.estimate_task(user1, task2, 1)
     assert App.current_task_users_status(round.id) == %{user1.id => false, user2.id => false}

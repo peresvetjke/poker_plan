@@ -19,7 +19,7 @@ defmodule PokerPlan.Data.Task do
     |> cast(params, @required_fields ++ @optional_fields)
     |> validate_required(@required_fields)
     |> unique_constraint(:title)
-    |> validate_length(:title, min: 3, max: 20)
+    |> validate_length(:title, min: 3, max: 40)
     |> assoc_constraint(:round)
   end
 end

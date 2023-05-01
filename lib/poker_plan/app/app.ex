@@ -162,11 +162,22 @@ defmodule PokerPlan.App do
     |> refresh_cache(:task_deleted)
   end
 
+  def remove_user_from_round(user_id, round_id)
+      when is_integer(user_id) and is_integer(round_id) do
+    round_info_pid(round_id)
+    |> Round.remove_user_from_round(user_id)
+
+    refresh_cache(round_id)
+  end
+
   def create_estimation(task_id, user_id, value)
       when is_integer(task_id) and is_integer(user_id) and is_integer(value) do
     %PokerPlan.Data.Estimation{}
     |> PokerPlan.Data.Estimation.changeset(%{task_id: task_id, user_id: user_id, value: value})
     |> Repo.insert()
+  end
+
+  defp refresh_cache(:ok, _msg) do
   end
 
   defp refresh_cache({:ok, task}, _) do

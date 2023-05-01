@@ -5,27 +5,17 @@ defmodule PokerPlanWeb.RoundLive.Show do
   alias PokerPlan.App
 
   def button_style(assigns, value) do
-    # IO.inspect(assigns, "assigns in button_style")
-
-    IO.inspect(value, label: "value")
-    IO.inspect(assigns.current_task_users_status, label: "assigns.current_task_users_status")
-
-    IO.inspect(Map.get(assigns.current_task_users_status, assigns.current_user_id),
-      label: "Map.get(assigns.current_task_users_status, assigns.current_user_id)"
-    )
-
-    case App.current_task_user_estimation_value(
-           assigns.round_info.round.id,
-           assigns.current_user_id
-         ) do
-      ^value -> "button-style-set"
-      _ -> "button-style"
+    if assigns.current_user.is_spectator do
+      "button-style cursor-not-allowed"
+    else
+      case App.current_task_user_estimation_value(
+             assigns.round_info.round.id,
+             assigns.current_user.id
+           ) do
+        ^value -> "button-style-set"
+        _ -> "button-style"
+      end
     end
-
-    # case Map.get(assigns.current_task_users_status, assigns.current_user.id) do
-    #   nil -> "button-style"
-    #   _value -> "button-style:hover"
-    # end
   end
 
   def current_task(assigns) do
@@ -42,56 +32,52 @@ defmodule PokerPlanWeb.RoundLive.Show do
           <%= i %>
         </button>
       <% end %>
-      <%!-- <div class="btn-group"> --%>
-      <%!-- <%= estimation_button(assigns, 1) %> --%>
-      <%!-- <%= @socket.current_user.id %> --%>
-      <%!-- </.estimation_button> --%>
-      <%!-- <.estimation_button current_task_users_status={@current_task_users_status} value={2}>
-        </.estimation_button>
-        <.estimation_button current_task_users_status={@current_task_users_status} value={3}>
-        </.estimation_button>
-        <.estimation_button current_task_users_status={@current_task_users_status} value={5}>
-        </.estimation_button>
-        <.estimation_button current_task_users_status={@current_task_users_status} value={8}>
-        </.estimation_button> --%>
-      <%!-- </div> --%>
     </div>
     """
   end
 
   def estimation_button(assigns, value) do
     style =
-      case Map.get(assigns.current_task_users_status, assigns.current_user_id) do
+      case Map.get(assigns.current_task_users_status, assigns.current_user.id) do
         nil -> "button-style"
         _value -> "button-style:hover"
       end
 
-    # class="bg-blue-500 hover:bg-blue-400 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded"
     ~H"""
     <button phx-click="estimate_task" phx-value-points={value} class={style}>
-      value <%!-- <%= @value %> --%>
+      value
     </button>
     """
   end
 
-  # def handle_event("hover", %{hover: true}, socket) do
-  #   {:noreply, assign(socket, hovering: true)}
-  # end
-
-  # def handle_event("hover", %{hover: false}, socket) do
-  #   {:noreply, assign(socket, hovering: false)}
-  # end
-
   def users_list(assigns) do
-    # current_task_users_status
+    sorted_users = assigns.round_info.users |> Enum.sort_by(fn u -> u.is_spectator end)
+
     ~H"""
-    <.table id="users" rows={@round_info.users}>
+    <.table id="users" rows={sorted_users}>
       <:col :let={user} label="User"><%= user.username %></:col>
 
-      <:col :let={user} :if={@round_info.current_task_id}>
-        <%= if Map.get(@current_task_users_status, user.id) do %>
-          <%= PokerPlanWeb.Icon.check_circle(assigns) %>
+      <:col :let={user}>
+        <%= if user.is_spectator do %>
+          <%= PokerPlanWeb.Icon.eye(assigns) %>
+        <% else %>
+          <%= if @round_info.current_task_id do %>
+            <%= if Map.get(@current_task_users_status, user.id) do %>
+              <%= PokerPlanWeb.Icon.check_circle(assigns) %>
+            <% end %>
+          <% end %>
         <% end %>
+      </:col>
+
+      <:col :let={user}>
+        <a
+          href="#"
+          data-confirm="Are you sure?"
+          phx-click="remove_user_from_round"
+          phx-value-id={user.id}
+        >
+          <%= PokerPlanWeb.Icon.delete(assigns) %>
+        </a>
       </:col>
     </.table>
     """
@@ -293,20 +279,20 @@ defmodule PokerPlanWeb.RoundLive.Show do
   # end
 
   def handle_event("delete_task", %{"id" => id}, socket) do
-    # task = Tasks.get_task!(String.to_integer(id))
-
     case App.delete_task(String.to_integer(id)) do
       {:ok, _task} ->
         {:noreply,
          socket
          |> put_flash(:info, "Task deleted successfully")}
+    end
+  end
 
-        # |> notify_parent()
-
-        #  |> push_patch(to: socket.assigns.patch)}
-
-        # {:error, %Ecto.Changeset{} = changeset} ->
-        #   {:noreply, assign_form(socket, changeset)}
+  def handle_event("remove_user_from_round", %{"id" => id}, socket) do
+    case App.remove_user_from_round(String.to_integer(id)) do
+      {:ok, _task} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Task deleted successfully")}
     end
   end
 

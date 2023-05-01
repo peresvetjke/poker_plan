@@ -7,6 +7,7 @@ defmodule PokerPlan.Data.User do
 
   schema "users" do
     field(:username, :string)
+    field(:is_spectator, :boolean)
     pow_user_fields()
 
     timestamps()
@@ -16,7 +17,7 @@ defmodule PokerPlan.Data.User do
     user_or_changeset
     |> pow_changeset(params)
     |> pow_extension_changeset(params)
-    |> Ecto.Changeset.cast(params, [:username])
-    |> Ecto.Changeset.validate_required([:username])
+    |> Ecto.Changeset.cast(params, [:username, :is_spectator])
+    |> Ecto.Changeset.validate_required([:username, :is_spectator])
   end
 end
