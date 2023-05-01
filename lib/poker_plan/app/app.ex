@@ -134,6 +134,10 @@ defmodule PokerPlan.App do
     |> refresh_cache(:task_updated)
   end
 
+  def task_short_title(title) do
+    title |> String.split("/") |> List.last()
+  end
+
   def start_task(%PokerPlan.Data.Task{} = task) do
     task.round_id
     |> round_info_pid()

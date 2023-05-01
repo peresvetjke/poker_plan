@@ -24,7 +24,7 @@ defmodule PokerPlanWeb.RoundLive.Show do
 
     <div class="rounded-lg border border-gray-400 p-4">
       <div class="mb-3">
-        <span>Current task: </span><b><%= assigns.current_task.title %></b>
+        <span>Current task: </span><b><a href={assigns.current_task.title}> <%= PokerPlan.App.task_short_title(assigns.current_task.title) %></a></b>
       </div>
 
       <%= for i <- [1, 2, 3, 5, 8] do %>
@@ -93,7 +93,9 @@ defmodule PokerPlanWeb.RoundLive.Show do
 
     ~H"""
     <.table id="tasks" rows={tasks}>
-      <:col :let={task} label="Title"><%= task.title %></:col>
+      <:col :let={task} label="Title">
+        <a href={task.title}><%= PokerPlan.App.task_short_title(task.title) %></a>
+      </:col>
       <:col :let={task} label="State"><%= task.state %></:col>
       <:col :let={task}>
         <%= if task.state == "finished" do %>
@@ -115,12 +117,6 @@ defmodule PokerPlanWeb.RoundLive.Show do
         </a>
       </:col>
     </.table>
-    """
-  end
-
-  def task_actions(assigns) do
-    ~H"""
-
     """
   end
 
