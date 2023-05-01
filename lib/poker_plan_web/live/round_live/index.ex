@@ -14,7 +14,9 @@ defmodule PokerPlanWeb.RoundLive.Index do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
-  defp apply_action(socket, :edit, %{"id" => id}) do
+  defp apply_action(socket, :edit, %{"round_id" => id}) do
+    id = String.to_integer(id)
+
     socket
     |> assign(:page_title, "Edit Round")
     |> assign(:round, Rounds.get_round!(id))

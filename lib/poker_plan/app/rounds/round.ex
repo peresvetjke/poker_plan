@@ -34,6 +34,7 @@ defmodule PokerPlan.Rounds.Round do
   end
 
   def estimate_current_task(pid, %PokerPlan.Data.User{} = user, value) do
+    IO.inspect(value, label: "casting estimate_current_task, value")
     GenServer.cast(pid, {:estimate_current_task, user, value})
   end
 
@@ -113,7 +114,7 @@ defmodule PokerPlan.Rounds.Round do
   @impl GenServer
   def handle_cast(
         {:set_current_task, %PokerPlan.Data.Task{state: "idle"} = task},
-        %{current_task_id: current_task_id} = round_info
+        %{current_task_id: current_task_id, users: users} = round_info
       )
       when is_nil(current_task_id) do
     # round_info =
@@ -126,7 +127,10 @@ defmodule PokerPlan.Rounds.Round do
     {:noreply,
      round_info
      |> Map.put(:current_task_id, task.id)
-     |> Map.put(:current_task_estimations, %{})}
+     |> Map.put(
+       :current_task_estimates,
+       Enum.reduce(users, %{}, fn u, acc -> Map.put(acc, u.id, nil) end)
+     )}
   end
 
   @impl GenServer
@@ -161,43 +165,86 @@ defmodule PokerPlan.Rounds.Round do
         } = round_info
       )
       when is_integer(value) do
-    estimates = Map.put(current_task_estimates, user.id, value)
+    case Map.get(current_task_estimates, user.id) do
+      nil ->
+        estimates = Map.put(current_task_estimates, user.id, value)
 
-    round_info =
-      if Map.values(estimates) |> Enum.all?() do
-        task =
-          round_info.round.tasks
-          |> Enum.find(fn x -> x.id == round_info.current_task_id end)
+        # round_info =
+        if Map.values(estimates) |> Enum.all?() do
+          task =
+            round_info.round.tasks
+            |> Enum.find(fn x -> x.id == round_info.current_task_id end)
 
-        Enum.each(estimates, fn {user_id, points} ->
-          PokerPlan.App.create_estimation(task.id, user.id, points)
-        end)
+          Enum.each(estimates, fn {user_id, points} ->
+            PokerPlan.App.create_estimation(task.id, user_id, points)
+          end)
 
-        PokerPlan.App.update_task(task, %{state: "finished"})
+          IO.inspect(task.id, label: "updating task to finished. task.id")
+          {:ok, task} = PokerPlan.App.update_task(task, %{state: "finished"})
+
+          Phoenix.PubSub.broadcast(
+            PokerPlan.PubSub,
+            "round:#{round_info.round.id}",
+            {:task_estimation_report, task}
+          )
+
+          round_info =
+            round_info
+            |> Map.put(:current_task_estimates, %{})
+            |> Map.put(:current_task_id, nil)
+
+          Phoenix.PubSub.broadcast(
+            PokerPlan.PubSub,
+            "round:#{round_info.round.id}",
+            {:round_refreshed, round_info}
+          )
+
+          {:noreply, round_info}
+        else
+          round_info = %{round_info | current_task_estimates: estimates}
+
+          Phoenix.PubSub.broadcast(
+            PokerPlan.PubSub,
+            "round:#{round_info.round.id}",
+            {:round_refreshed, round_info}
+          )
+
+          {:noreply, round_info}
+          # {:noreply, %{round_info | current_task_estimates: estimates}}
+          # IO.inspect(round_info.current_task_id, label: "round_info.current_task_id (in block)")
+        end
+
+      ^value ->
+        IO.inspect("case ^value being performed...")
+        estimates = Map.put(current_task_estimates, user.id, nil)
+        round_info = %{round_info | current_task_estimates: estimates}
 
         Phoenix.PubSub.broadcast(
           PokerPlan.PubSub,
           "round:#{round_info.round.id}",
-          {:task_estimation_report, estimates}
+          {:round_refreshed, round_info}
         )
 
-        round_info
-        |> Map.put(:current_task_estimates, %{})
-        |> Map.put(:current_task_id, nil)
-      else
-        round_info
-        # IO.inspect(round_info.current_task_id, label: "round_info.current_task_id (in block)")
-      end
+        {:noreply, round_info}
+
+      _old_value ->
+        # IO.inspect(points, label: "case value being performed..., value")
+        estimates = Map.put(current_task_estimates, user.id, value)
+        round_info = %{round_info | current_task_estimates: estimates}
+
+        Phoenix.PubSub.broadcast(
+          PokerPlan.PubSub,
+          "round:#{round_info.round.id}",
+          {:round_refreshed, round_info}
+        )
+
+        {:noreply, round_info}
+    end
 
     # IO.inspect(round_info.current_task_id, label: "round_info.current_task_id (out of block)")
 
-    Phoenix.PubSub.broadcast(
-      PokerPlan.PubSub,
-      "round:#{round_info.round.id}",
-      {:round_refreshed, round_info}
-    )
-
-    {:noreply, round_info}
+    # {:noreply, %{round_info | current_task_estimates: estimates}}
+    # {:noreply, round_info}
   end
 
   # @impl GenServer

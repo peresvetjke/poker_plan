@@ -41,17 +41,9 @@ defmodule PokerPlan.Rounds do
 
   """
 
-  # def get_round_info!(id) when is_integer(id) do
-  #   case PokerPlan.Rounds.RoundsStore.get(id) do
-  #     nil ->
-  #       {:ok, pid} = PokerPlan.Rounds.Round.start_link(load_round_with_tasks(id))
-  #       PokerPlan.Rounds.RoundsStore.put(id, pid)
-  #       PokerPlan.Rounds.Round.get(pid)
-
-  #     pid ->
-  #       PokerPlan.Rounds.Round.get(pid)
-  #   end
-  # end
+  def get_round!(id) when is_integer(id) do
+    Repo.get!(PokerPlan.Data.Round, id)
+  end
 
   @doc """
   Creates a round.

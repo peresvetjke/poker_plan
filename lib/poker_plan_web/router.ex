@@ -38,8 +38,7 @@ defmodule PokerPlanWeb.Router do
     scope "/rounds/:round_id" do
       live("/tasks/new", RoundLive.Show, :new_task)
       live("/tasks/:id/edit", RoundLive.Show, :edit_task)
-      live("/tasks/:id/start", RoundLive.Show, :start_task)
-      live("/tasks/:id/estimate", RoundLive.Show, :estimate_task)
+      live("/tasks/:id/estimations", RoundLive.Show, :estimations)
     end
 
     get("/", PageController, :home)

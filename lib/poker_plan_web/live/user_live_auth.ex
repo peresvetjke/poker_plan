@@ -17,9 +17,9 @@ defmodule PokerPlanWeb.UserLiveAuth do
     end
   end
 
-  defp get_user(socket, session, config \\ [otp_app: :poker_plan])
+  def get_user(socket, session, config \\ [otp_app: :poker_plan])
 
-  defp get_user(socket, %{"poker_plan_auth" => signed_token}, config) do
+  def get_user(socket, %{"poker_plan_auth" => signed_token}, config) do
     conn = struct!(Plug.Conn, secret_key_base: socket.endpoint.config(:secret_key_base))
     salt = Atom.to_string(Pow.Plug.Session)
 
@@ -31,5 +31,5 @@ defmodule PokerPlanWeb.UserLiveAuth do
     end
   end
 
-  defp get_user(_, _, _), do: nil
+  def get_user(_, _, _), do: nil
 end

@@ -37,15 +37,26 @@ defmodule PokerPlan.AppTest do
     assert App.current_task_users_status(round.id) == %{user1.id => false, user2.id => false}
     App.estimate_task(user1, task2, 1)
     assert App.current_task_users_status(round.id) == %{user1.id => true, user2.id => false}
-    refute App.current_task_estimates(round.id)
+    assert App.current_task_user_estimation_value(round, user1) == 1
+    App.estimate_task(user1, task2, 1)
+    assert App.current_task_users_status(round.id) == %{user1.id => false, user2.id => false}
+    App.estimate_task(user1, task2, 1)
+    App.estimate_task(user1, task2, 5)
+    refute App.task_estimates(task2.id)
+    assert App.current_task(round.id).id == task2.id
     App.estimate_task(user2, task2, 3)
-    assert App.current_task_users_status(round.id) == %{user1.id => true, user2.id => true}
-    assert App.current_task(round.id).state == "finished"
-    assert App.current_task_estimates(round.id) == %{user1.id => 1, user2.id => 3}
+    # assert App.current_task_users_status(round.id) == %{user1.id => true, user2.id => true}
+    refute App.current_task(round.id)
+    assert PokerPlan.Repo.get(PokerPlan.Data.Task, task2.id).state == "finished"
+
+    # assert %{%{id: ^user1_id} => 1, %{id: ^user2_id} => 3} = App.task_estimates(task2.id)
+    # IO.inspect("last test")
+
+    assert App.task_estimates(task2.id) == %{user1.id => 5, user2.id => 3}
+
     # IO.inspect(Repo.all(PokerPlan.Data.Estimation))
     task2_id = task2.id
     estimations = Repo.all(from e in PokerPlan.Data.Estimation, where: e.task_id == ^task2_id)
     assert Enum.map(estimations, &Map.get(&1, :value)) |> length() == 2
-    assert App.current_task(round.id).id == task1.id
   end
 end

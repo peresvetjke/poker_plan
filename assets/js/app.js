@@ -40,3 +40,8 @@ liveSocket.connect()
 window.liveSocket = liveSocket
 
 import "./user_socket.js"
+import Alpine from 'alpinejs'
+
+window.Alpine = Alpine
+
+Alpine.start()

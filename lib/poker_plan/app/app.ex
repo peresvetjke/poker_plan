@@ -4,6 +4,10 @@ defmodule PokerPlan.App do
   alias PokerPlan.Repo
   alias PokerPlan.Rounds.Round
 
+  def get_round(id) when is_integer(id) do
+    Repo.get!(PokerPlan.Data.Round, id)
+  end
+
   def round_info(id) when is_integer(id) do
     id
     |> round_info_pid()
@@ -35,16 +39,55 @@ defmodule PokerPlan.App do
         }
   end
 
-  def current_task_estimates(id) when is_integer(id) do
-    case current_task(id) do
-      nil ->
-        nil
+  def task_estimates(id) when is_integer(id) do
+    task =
+      Repo.get(PokerPlan.Data.Task, id)
+      |> Repo.preload(estimations: :user)
 
-      task ->
-        case task.state do
-          "finished" -> round_info(id).current_task_estimates
-          _ -> nil
-        end
+    IO.inspect(task.estimations, label: "task.estimations")
+    IO.inspect(task.state, label: "task.state")
+
+    IO.inspect(
+      Enum.reduce(task.estimations, %{}, fn e, acc -> Map.put(acc, e.user.id, e.value) end),
+      label:
+        "Enum.reduce(task.estimations, %{}, fn e, acc -> Map.put(acc, e.user.id, e.value) end)"
+    )
+
+    case task.state do
+      "finished" ->
+        task.estimations
+        |> Enum.reduce(%{}, fn e, acc -> Map.put(acc, e.user.id, e.value) end)
+
+      _ ->
+        nil
+    end
+  end
+
+  def current_task_user_estimation_value(
+        %PokerPlan.Data.Round{} = round,
+        %PokerPlan.Data.User{} = user
+      ) do
+    current_task_user_estimation_value(round.id, user.id)
+  end
+
+  def current_task_user_estimation_value(round_id, user_id)
+      when is_integer(round_id) and is_integer(user_id) do
+    round_info = round_info(round_id)
+    Map.get(round_info.current_task_estimates, user_id)
+  end
+
+  def task_users(task_id) when is_integer(task_id) do
+    task =
+      Repo.get(PokerPlan.Data.Task, task_id)
+      |> Repo.preload(estimations: :user)
+
+    case task.state do
+      "finished" ->
+        task.estimations
+        |> Enum.reduce([], fn e, acc -> [e.user | acc] end)
+
+      _ ->
+        nil
     end
   end
 
@@ -52,7 +95,10 @@ defmodule PokerPlan.App do
     query = from e in PokerPlan.Data.Estimation, where: e.task_id == ^id
     estimates = Repo.all(query)
 
-    Enum.reduce(estimates, %{}, fn e, acc -> Map.put(acc, e.user_id, e.value) end)
+    estimates
+    |> Enum.reduce(%{}, fn e, acc -> Map.put(acc, e.user_id, e.value) end)
+    |> Enum.sort_by(fn {k, v} -> v end)
+
     # estimates = PokerPlan.Data.Estimation
   end
 

@@ -1,0 +1,43 @@
+.btn-custom {
+  background-color: #3b82f6;
+  border-color: #1d4ed8;
+  color: #fff;
+  font-weight: bold;
+  padding: 0.5rem 1rem;
+  border-bottom-width: 0.25rem;
+  border-radius: 0.25rem;
+  transition: background-color 0.2s ease-in-out,
+    border-color 0.2s ease-in-out;
+}
+
+.btn-custom:hover {
+  background-color: #2563eb;
+  border-color: #2563eb;
+  border-bottom-width: 0.25rem;
+}
+
+.button-style {
+  background-color: transparent;
+  color: black;
+  font-weight: bold;
+  border: 1px solid black;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s;
+}
+
+.button-style-set {
+  background-color: green;
+  color: white;
+  font-weight: bold;
+  border: 1px solid black;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s;
+}
+
+.button-style:hover {
+  background-color: gray;
+  color: white;
+  border-color: transparent;
+}

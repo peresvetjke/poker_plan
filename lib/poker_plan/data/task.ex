@@ -9,6 +9,7 @@ defmodule PokerPlan.Data.Task do
     field(:state, :string, default: "idle")
 
     belongs_to(:round, Round)
+    has_many(:estimations, Estimation)
 
     timestamps()
   end
