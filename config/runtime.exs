@@ -113,3 +113,17 @@ if config_env() == :prod do
   #
   # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
 end
+
+if config_env() == :dev do
+  System.put_env("GITHUB_CLIENT_ID", "b48a022cb66ac29f1cc0")
+  System.put_env("GITHUB_CLIENT_SECRET", "eb4882774bc4d9a08e46a16bd0978ff9bf9b7f27")
+end
+
+config :poker_plan, :pow_assent,
+  providers: [
+    github: [
+      client_id: System.get_env("GITHUB_CLIENT_ID"),
+      client_secret: System.get_env("GITHUB_CLIENT_SECRET"),
+      strategy: Assent.Strategy.Github
+    ]
+  ]
