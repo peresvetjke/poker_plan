@@ -53,7 +53,8 @@ defmodule PokerPlan.MixProject do
       {:pow, "~> 1.0.29"},
       {:pow_assent, "~> 0.4.17"},
       {:certifi, "~> 2.4"},
-      {:ssl_verify_fun, "~> 1.1"}
+      {:ssl_verify_fun, "~> 1.1"},
+      {:distillery, "~> 2.0"}
     ]
   end
 

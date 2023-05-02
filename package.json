@@ -1,5 +1,9 @@
 {
   "dependencies": {
+    "deploy": "^1.0.3",
     "heroicons": "^2.0.17"
+  },
+  "scripts": {
+    "deploy": "node --version"
   }
 }
