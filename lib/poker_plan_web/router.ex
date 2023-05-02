@@ -4,7 +4,8 @@ defmodule PokerPlanWeb.Router do
   use PowAssent.Phoenix.Router
 
   use Pow.Extension.Phoenix.Router,
-    extensions: [PowResetPassword, PowEmailConfirmation]
+    # extensions: [PowResetPassword, PowEmailConfirmation]
+    extensions: []
 
   pipeline :browser do
     plug(:accepts, ["html"])

@@ -4,7 +4,8 @@ defmodule PokerPlan.Data.User do
   use PowAssent.Ecto.Schema
 
   use Pow.Extension.Ecto.Schema,
-    extensions: [PowResetPassword, PowEmailConfirmation]
+    # extensions: [PowResetPassword, PowEmailConfirmation]
+    extensions: []
 
   schema "users" do
     has_many :user_identities,
