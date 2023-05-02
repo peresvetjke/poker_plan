@@ -69,6 +69,10 @@ config :poker_plan, :pow,
   mailer_backend: PokerPlanWeb.Pow.Mailer,
   routes_backend: PokerPlanWeb.Pow.Routes
 
+config :poker_plan, PokerPlanWeb.Pow.Mailer,
+  adapter: Swoosh.Adapters.Sendgrid,
+  api_key: "SG.x.x"
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"
