@@ -77,12 +77,3 @@ config :phoenix, :plug_init_mode, :runtime
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
-
-config :poker_plan, :pow_assent,
-  providers: [
-    github: [
-      client_id: "b48a022cb66ac29f1cc0",
-      client_secret: "eb4882774bc4d9a08e46a16bd0978ff9bf9b7f27",
-      strategy: Assent.Strategy.Github
-    ]
-  ]
