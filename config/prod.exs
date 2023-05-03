@@ -20,7 +20,3 @@ config :logger, level: :info
 
 # Runtime production configuration, including reading
 # of environment variables, is done on config/runtime.exs.
-
-config :poker_plan, PokerPlanWeb.Endpoint,
-  url: [host: "oblong-gainsboro-adouri.gigalixirapp.com", port: 443, scheme: "https"],
-  check_origin: ["//*.oblong-gainsboro-adouri.gigalixirapp.com"]
