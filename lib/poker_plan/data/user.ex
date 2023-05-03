@@ -4,7 +4,7 @@ defmodule PokerPlan.Data.User do
   use PowAssent.Ecto.Schema
 
   use Pow.Extension.Ecto.Schema,
-    extensions: [PowResetPassword, PowEmailConfirmation]
+    extensions: []
 
   schema "users" do
     has_many :user_identities,
@@ -22,7 +22,6 @@ defmodule PokerPlan.Data.User do
   def changeset(user_or_changeset, %{} = params \\ %{}) do
     user_or_changeset
     |> pow_changeset(params)
-    |> pow_extension_changeset(params)
     |> Ecto.Changeset.cast(params, [:username, :is_spectator])
   end
 end

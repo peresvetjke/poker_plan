@@ -64,9 +64,9 @@ config :poker_plan, :pow,
   web_module: PokerPlanWeb,
   user: PokerPlan.Data.User,
   repo: PokerPlan.Repo,
-  extensions: [PowResetPassword, PowEmailConfirmation],
+  extensions: [],
   controller_callbacks: Pow.Extension.Phoenix.ControllerCallbacks,
-  mailer_backend: PokerPlanWeb.Pow.Mailer,
+  # mailer_backend: PokerPlanWeb.Pow.Mailer,
   routes_backend: PokerPlanWeb.Pow.Routes
 
 # Import environment specific config. This must remain at the bottom
