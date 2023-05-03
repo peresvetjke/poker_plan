@@ -1,5 +1,8 @@
 {
   "dependencies": {
     "heroicons": "^2.0.17"
+  },
+  "scripts": {
+    "deploy": "mix assets.deploy && rm -f _build/esbuild"
   }
 }
