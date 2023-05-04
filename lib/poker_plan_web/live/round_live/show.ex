@@ -228,15 +228,11 @@ defmodule PokerPlanWeb.RoundLive.Show do
   end
 
   def handle_event("remove_user_from_round", %{"id" => id}, socket) do
-    case App.remove_user_from_round(
-           String.to_integer(id),
-           socket.assigns.round_info.round.id
-         ) do
-      {:ok, _task} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "User removed successfully")}
-    end
+    App.remove_user_from_round(String.to_integer(id), socket.assigns.round_info.round.id)
+
+    {:noreply,
+     socket
+     |> put_flash(:info, "User removed successfully")}
   end
 
   def handle_event("estimate_task", %{"points" => points}, socket) do
