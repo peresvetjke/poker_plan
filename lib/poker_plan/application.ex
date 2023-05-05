@@ -20,7 +20,9 @@ defmodule PokerPlan.Application do
       PokerPlanWeb.Endpoint,
       # Start a worker by calling: PokerPlan.Worker.start_link(arg)
       # {PokerPlan.Worker, arg}
-      {Registry, keys: :unique, name: PokerPlan.RoundRegistry}
+      {Registry, keys: :unique, name: PokerPlan.RoundRegistry},
+      {Registry, keys: :unique, name: PokerPlan.TasksStoreRegistry},
+      {Registry, keys: :unique, name: PokerPlan.TaskRegistry}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
