@@ -30,7 +30,7 @@ defmodule PokerPlanWeb.RoundLive.FormComponent do
 
   @impl true
   def update(%{round: round} = assigns, socket) do
-    changeset = Rounds.change_round(round)
+    changeset = change_round(round)
 
     {:ok,
      socket
@@ -42,7 +42,7 @@ defmodule PokerPlanWeb.RoundLive.FormComponent do
   def handle_event("validate", %{"round" => round_params}, socket) do
     changeset =
       socket.assigns.round
-      |> Rounds.change_round(round_params)
+      |> change_round(round_params)
       |> Map.put(:action, :validate)
 
     {:noreply, assign_form(socket, changeset)}
@@ -53,7 +53,7 @@ defmodule PokerPlanWeb.RoundLive.FormComponent do
   end
 
   defp save_round(socket, :edit, round_params) do
-    case Rounds.update_round(socket.assigns.round, round_params) do
+    case update_round(socket.assigns.round, round_params) do
       {:ok, round} ->
         notify_parent({:saved, round})
 
@@ -87,4 +87,14 @@ defmodule PokerPlanWeb.RoundLive.FormComponent do
   end
 
   defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
+
+  defp change_round(%PokerPlan.Data.Round{} = round, attrs \\ %{}) do
+    PokerPlan.Data.Round.changeset(round, attrs)
+  end
+
+  defp update_round(%PokerPlan.Data.Round{} = round, attrs) do
+    round
+    |> PokerPlan.Data.Round.changeset(attrs)
+    |> PokerPlan.Repo.update()
+  end
 end

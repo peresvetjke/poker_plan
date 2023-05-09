@@ -1,55 +1,63 @@
 <.header>
-  <%= @round_info.round.title %>
+  <%= @round.round.title %>
   <:actions>
-    <.link patch={~p"/rounds/#{@round_info.round}/tasks/new"} phx-click={JS.push_focus()}>
+    <.link patch={~p"/rounds/#{@round.round}/tasks/new"} phx-click={JS.push_focus()}>
       <.button>New Task</.button>
     </.link>
   </:actions>
 </.header>
 
-<.current_task
+<.live_component
   :if={@current_task}
+  module={PokerPlanWeb.TaskLive.CurrentTaskComponent}
+  id="current-task"
   current_user={@current_user}
   current_task={@current_task}
-  round_info={@round_info}
-  current_task_users_status={@current_task_users_status}
->
-</.current_task>
+/>
 
-<.users_list
-  round_info={@round_info}
+<.live_component
+  id="users-list"
+  users={@users}
   current_task={@current_task}
-  current_task_users_status={@current_task_users_status}
->
-</.users_list>
+  module={PokerPlanWeb.TaskLive.UsersListComponent}
+/>
 
-<.tasks_list tasks={@tasks}></.tasks_list>
-
-<.back navigate={~p"/rounds"}>Back to rounds</.back>
+<.live_component
+  :if={Enum.any?(@tasks)}
+  id="tasks-list"
+  module={PokerPlanWeb.TaskLive.TasksListComponent}
+  tasks={@tasks}
+/>
 
 <.modal
   :if={@live_action in [:new_task, :edit_task]}
   id="update-task-modal"
   show
-  on_cancel={JS.patch(~p"/rounds/#{@round_info.round}")}
+  on_cancel={JS.patch(~p"/rounds/#{@round.round}")}
 >
   <.live_component
     module={PokerPlanWeb.TaskLive.FormComponent}
-    id={@task.id || :new}
+    id={:new}
     title={@page_title}
     action={@live_action}
-    round={@round_info.round}
-    task={@task || %Task{round_id: @round_info.round.id}}
-    patch={~p"/rounds/#{@round_info.round}"}
+    round={@round}
+    task={%Task{round_id: @round.round.id}}
+    patch={~p"/rounds/#{@round.round}"}
   />
 </.modal>
 
 <.modal
   :if={@live_action in [:estimations]}
-  id="estimations-result"
+  id="estimations-result-modal"
   show
-  on_cancel={JS.patch(~p"/rounds/#{@round_info.round}")}
+  on_cancel={JS.patch(~p"/rounds/#{@round.round}")}
 >
-  <.estimations_report task_users={@task_users} task_estimates={@task_estimates}>
-  </.estimations_report>
+  <.live_component
+    id="estimations-result-modal"
+    module={PokerPlanWeb.TaskLive.EstimationsReportComponent}
+    estimations={@estimations}
+    task_users={@task_users}
+  />
 </.modal>
+
+<.back navigate={~p"/rounds"}>Back to rounds</.back>

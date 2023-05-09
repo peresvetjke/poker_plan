@@ -19,7 +19,10 @@ defmodule PokerPlan.MixProject do
   def application do
     [
       mod: {PokerPlan.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools],
+      start_phases: [
+        cache: []
+      ]
     ]
   end
 

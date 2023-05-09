@@ -6,7 +6,7 @@ defmodule PokerPlanWeb.RoundLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, stream(socket, :rounds, Rounds.list_rounds())}
+    {:ok, stream(socket, :rounds, PokerPlan.Repo.all(PokerPlan.Data.Round))}
   end
 
   @impl true
@@ -41,7 +41,7 @@ defmodule PokerPlanWeb.RoundLive.Index do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    round = Rounds.get_round!(id)
+    round = Rounds.get_round(id).round
     {:ok, _} = Rounds.delete_round(round)
 
     {:noreply, stream_delete(socket, :rounds, round)}
