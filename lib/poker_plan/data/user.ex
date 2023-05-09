@@ -23,5 +23,21 @@ defmodule PokerPlan.Data.User do
     user_or_changeset
     |> pow_changeset(params)
     |> Ecto.Changeset.cast(params, [:username, :is_spectator])
+    |> refresh_user()
   end
+
+  defp refresh_user(
+         %Ecto.Changeset{
+           valid?: true,
+           data: %PokerPlan.Data.User{id: id}
+         } = changeset
+       )
+       when is_integer(id) do
+    PokerPlan.CacheHelpers.pid(:user, id)
+    |> PokerPlan.User.update(changeset)
+
+    changeset
+  end
+
+  defp refresh_user(changeset), do: changeset
 end

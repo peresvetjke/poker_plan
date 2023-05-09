@@ -21,5 +21,6 @@ defmodule PokerPlan.Data.Task do
     |> unique_constraint(:title)
     |> validate_length(:title, min: 3, max: 100)
     |> assoc_constraint(:round)
+    |> cast_assoc(:estimations)
   end
 end
