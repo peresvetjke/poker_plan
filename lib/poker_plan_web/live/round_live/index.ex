@@ -1,7 +1,6 @@
 defmodule PokerPlanWeb.RoundLive.Index do
   use PokerPlanWeb, :live_view
 
-  alias PokerPlan.Rounds
   alias PokerPlan.Data.Round
 
   @impl true
@@ -19,7 +18,7 @@ defmodule PokerPlanWeb.RoundLive.Index do
 
     socket
     |> assign(:page_title, "Edit Round")
-    |> assign(:round, Rounds.get_round!(id))
+    |> assign(:round, get_round(id))
   end
 
   defp apply_action(socket, :new, _params) do
@@ -41,9 +40,16 @@ defmodule PokerPlanWeb.RoundLive.Index do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    round = Rounds.get_round(id).round
-    {:ok, _} = Rounds.delete_round(round)
+    round = get_round(id)
+    {:ok, _} = PokerPlan.Repo.delete(round)
 
     {:noreply, stream_delete(socket, :rounds, round)}
   end
+
+  defp get_round(id) when is_integer(id),
+    do: PokerPlan.CacheHelpers.load_record_using_cache(:round, id).round
+
+  # defp delete_round(id) do
+  #   PokerPlan.Repo.get(PokerPlan.Data.Round, id) |> PokerPlan.Repo.delete()
+  # end
 end

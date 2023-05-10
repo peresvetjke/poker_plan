@@ -1,7 +1,6 @@
 defmodule PokerPlan.Round do
   use GenServer
 
-  import Ecto.Query, only: [from: 2]
   import PokerPlan.CacheHelpers
 
   # Client
@@ -107,19 +106,14 @@ defmodule PokerPlan.Round do
   end
 
   @impl GenServer
-  def handle_cast({:set_current_task, task_id}, %{current_task_id: current_task_id} = state) do
-    {:noreply, %{state | current_task_id: task_id} |> broadcast()}
-  end
+  def handle_cast({:set_current_task, task_id}, state),
+    do: {:noreply, %{state | current_task_id: task_id} |> broadcast()}
 
   @impl GenServer
-  def handle_cast(:refresh, state) do
-    {:noreply, state |> broadcast()}
-  end
+  def handle_cast(:refresh, state), do: {:noreply, state |> broadcast()}
 
   @impl GenServer
-  def handle_info({reference, :ok}, state) when is_reference(reference) do
-    {:noreply, state}
-  end
+  def handle_info({reference, :ok}, state) when is_reference(reference), do: {:noreply, state}
 
   @impl GenServer
   def handle_info({:DOWN, reference, :process, pid, :normal}, state)

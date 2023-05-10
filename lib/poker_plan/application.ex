@@ -42,7 +42,7 @@ defmodule PokerPlan.Application do
 
   # Load data from DB
   @impl true
-  def start_phase(:cache, :normal, options) do
+  def start_phase(:cache, :normal, _options) do
     cache_users()
     cache_rounds()
     cache_tasks()

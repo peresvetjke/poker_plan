@@ -43,7 +43,7 @@ defmodule PokerPlanWeb.TaskLive.UsersListComponent do
     users |> Enum.sort_by(fn u -> u.is_spectator end)
   end
 
-  defp username(%PokerPlan.Data.User{username: username, email: email} = user) do
+  defp username(%PokerPlan.Data.User{username: username, email: email}) do
     case username do
       nil ->
         [name | _] = email |> String.split("@")

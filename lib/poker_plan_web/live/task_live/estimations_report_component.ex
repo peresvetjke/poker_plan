@@ -39,10 +39,10 @@ defmodule PokerPlanWeb.TaskLive.EstimationsReportComponent do
     user(assigns.task_users, user_id) |> username()
   end
 
-  defp row_label(assigns, %{row_label: row_label}), do: row_label
+  defp row_label(_assigns, %{row_label: row_label}), do: row_label
 
-  defp row_value(assigns, %PokerPlan.Data.Estimation{value: value} = _row), do: value
-  defp row_value(assigns, %{row_value: row_value}), do: row_value
+  defp row_value(_assigns, %PokerPlan.Data.Estimation{value: value} = _row), do: value
+  defp row_value(_assigns, %{row_value: row_value}), do: row_value
 
   defp user(users, id), do: Enum.find(users, fn u -> u.id == id end)
 
@@ -57,6 +57,6 @@ defmodule PokerPlanWeb.TaskLive.EstimationsReportComponent do
     end
   end
 
-  defp is_total(%{row_label: _row_label} = row), do: true
+  defp is_total(%{row_label: _row_label}), do: true
   defp is_total(_row), do: false
 end

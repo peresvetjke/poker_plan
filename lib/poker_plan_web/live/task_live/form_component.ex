@@ -53,7 +53,7 @@ defmodule PokerPlanWeb.TaskLive.FormComponent do
     task_params = %{task_params | "round_id" => String.to_integer(round_id)}
 
     case create_task(task_params) do
-      {:ok, task} ->
+      {:ok, _task} ->
         {:noreply,
          socket
          |> put_flash(:info, "Task created successfully")
@@ -67,8 +67,6 @@ defmodule PokerPlanWeb.TaskLive.FormComponent do
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do
     assign(socket, :form, to_form(changeset))
   end
-
-  defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
 
   defp change_task(%PokerPlan.Data.Task{} = task, attrs \\ %{}) do
     PokerPlan.Data.Task.changeset(task, attrs)
