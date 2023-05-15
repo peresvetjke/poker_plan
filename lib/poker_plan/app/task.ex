@@ -62,12 +62,7 @@ defmodule PokerPlan.Task do
   end
 
   @impl GenServer
-  def handle_call(
-        :get,
-        _from,
-        %{task: %PokerPlan.Data.Task{id: task_id, state: "finished"}, estimations: estimations} =
-          state
-      ) do
+  def handle_call(:get, _from, %{task: %PokerPlan.Data.Task{state: "finished"}} = state) do
     {:reply, state, state}
   end
 
@@ -127,7 +122,7 @@ defmodule PokerPlan.Task do
   end
 
   @impl GenServer
-  def handle_cast(:start, %{task: %PokerPlan.Data.Task{state: "doing"} = task} = state) do
+  def handle_cast(:start, %{task: %PokerPlan.Data.Task{state: "doing"}} = state) do
     :logger.info("IGNORED: Tried to start doing task.")
 
     {:noreply, state}
@@ -136,7 +131,7 @@ defmodule PokerPlan.Task do
   @impl GenServer
   def handle_cast(
         :start,
-        %{task: %PokerPlan.Data.Task{id: id, state: "idle", round_id: round_id} = task} = state
+        %{task: %PokerPlan.Data.Task{state: "idle", round_id: round_id} = task} = state
       ) do
     round_pid = pid(:round, round_id)
     round = Round.get(round_pid)
@@ -152,7 +147,7 @@ defmodule PokerPlan.Task do
   end
 
   @impl GenServer
-  def handle_cast({:estimate, %PokerPlan.Data.User{is_spectator: true} = user, value}, state)
+  def handle_cast({:estimate, %PokerPlan.Data.User{is_spectator: true}, value}, state)
       when is_integer(value) do
     :logger.info("IGNORED: Spectator tried to estimate task.")
 
@@ -161,7 +156,7 @@ defmodule PokerPlan.Task do
 
   @impl GenServer
   def handle_cast(
-        {:estimate, %PokerPlan.Data.User{} = user, value},
+        {:estimate, %PokerPlan.Data.User{}, value},
         %{task: %PokerPlan.Data.Task{state: "finished"}} = state
       )
       when is_integer(value) do
@@ -172,7 +167,7 @@ defmodule PokerPlan.Task do
 
   @impl GenServer
   def handle_cast(
-        {:estimate, %PokerPlan.Data.User{} = user, value},
+        {:estimate, %PokerPlan.Data.User{}, value},
         %{task: %PokerPlan.Data.Task{state: "idle"}} = state
       )
       when is_integer(value) do
@@ -183,9 +178,9 @@ defmodule PokerPlan.Task do
 
   @impl GenServer
   def handle_cast(
-        {:estimate, %PokerPlan.Data.User{id: user_id} = user, value},
+        {:estimate, %PokerPlan.Data.User{id: user_id}, value},
         %{
-          task: %PokerPlan.Data.Task{id: task_id, state: "doing", round_id: round_id} = task,
+          task: %PokerPlan.Data.Task{state: "doing"},
           estimations_map: %{} = estimations_map
         } = state
       )

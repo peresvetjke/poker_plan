@@ -1,8 +1,6 @@
 defmodule PokerPlanWeb.TaskLive.TasksListComponent do
   use PokerPlanWeb, :live_component
 
-  import Ecto.Query, only: [from: 2]
-
   def render(assigns) do
     ~H"""
     <div>

@@ -4,7 +4,7 @@ defmodule PokerPlanWeb.RoundLive.Show do
   import PokerPlan.CacheHelpers
 
   @impl true
-  def mount(%{"round_id" => round_id}, session, socket) do
+  def mount(%{"round_id" => round_id}, _session, socket) do
     Phoenix.PubSub.subscribe(PokerPlan.PubSub, "round:#{round_id}")
 
     round_id = String.to_integer(round_id)
@@ -15,11 +15,7 @@ defmodule PokerPlanWeb.RoundLive.Show do
   end
 
   @impl true
-  def handle_info(
-        {:round_refreshed,
-         %{round: %{id: round_id}, tasks_ids: tasks_ids, users_ids: users_ids} = round},
-        socket
-      ) do
+  def handle_info({:round_refreshed, round}, socket) do
     {:noreply, socket |> refresh_round_details(round)}
   end
 
@@ -58,12 +54,8 @@ defmodule PokerPlanWeb.RoundLive.Show do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
-  defp page_title(:show), do: "Show Round"
   defp page_title(:edit), do: "Edit Round"
   defp page_title(:new_task), do: "New Task"
-  defp page_title(:edit_task), do: "Edit Task"
-  defp page_title(:start_task), do: "Start Task"
-  defp page_title(:estimations), do: "Result"
 
   defp apply_action(socket, :new_task, _params) do
     socket
@@ -90,9 +82,7 @@ defmodule PokerPlanWeb.RoundLive.Show do
     )
   end
 
-  defp apply_action(socket, :show, params) do
-    socket
-  end
+  defp apply_action(socket, :show, _params), do: socket
 
   defp current_task(%{current_task_id: nil} = _round, _tasks), do: nil
 
@@ -125,13 +115,12 @@ defmodule PokerPlanWeb.RoundLive.Show do
   defp refresh_round_details(socket, %{tasks_ids: tasks_ids, users_ids: users_ids} = round) do
     tasks = load_records_using_cache(:task, tasks_ids)
 
-    socket =
-      socket
-      |> assign(
-        round: round,
-        tasks: tasks,
-        users: load_records_using_cache(:user, users_ids),
-        current_task: current_task(round, tasks)
-      )
+    socket
+    |> assign(
+      round: round,
+      tasks: tasks,
+      users: load_records_using_cache(:user, users_ids),
+      current_task: current_task(round, tasks)
+    )
   end
 end

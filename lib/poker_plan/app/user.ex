@@ -32,9 +32,9 @@ defmodule PokerPlan.User do
   end
 
   @impl GenServer
-  def handle_cast({:update, changeset}, _from, user) do
+  def handle_cast({:update, changeset}, _user) do
     user = Ecto.Changeset.apply_changes(changeset)
 
-    {:noreply, user, user}
+    {:noreply, user}
   end
 end

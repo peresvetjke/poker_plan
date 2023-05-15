@@ -1,8 +1,6 @@
 defmodule PokerPlanWeb.RoundLive.FormComponent do
   use PokerPlanWeb, :live_component
 
-  alias PokerPlan.Rounds
-
   @impl true
   def render(assigns) do
     ~H"""
@@ -68,7 +66,7 @@ defmodule PokerPlanWeb.RoundLive.FormComponent do
   end
 
   defp save_round(socket, :new, round_params) do
-    case Rounds.create_round(round_params) do
+    case create_round(round_params) do
       {:ok, round} ->
         notify_parent({:saved, round})
 
@@ -90,6 +88,12 @@ defmodule PokerPlanWeb.RoundLive.FormComponent do
 
   defp change_round(%PokerPlan.Data.Round{} = round, attrs \\ %{}) do
     PokerPlan.Data.Round.changeset(round, attrs)
+  end
+
+  defp create_round(attrs) do
+    %PokerPlan.Data.Round{}
+    |> PokerPlan.Data.Round.changeset(attrs)
+    |> PokerPlan.Repo.insert()
   end
 
   defp update_round(%PokerPlan.Data.Round{} = round, attrs) do
