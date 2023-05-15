@@ -3,8 +3,7 @@ defmodule PokerPlan.CacheHelpers do
   def ids_attribute(:user), do: :users_ids
 
   def load_records_using_cache(type, ids) when is_list(ids) do
-    # REFACTOR: make concurrent?
-    Enum.map(ids, fn id -> load_record_using_cache(type, id) end)
+    pmap(ids, fn id -> load_record_using_cache(type, id) end)
   end
 
   def load_record_using_cache(type, id) when is_integer(id) do
@@ -48,5 +47,11 @@ defmodule PokerPlan.CacheHelpers do
   def load_from_db(:user, id) when is_integer(id) do
     PokerPlan.Data.User
     |> PokerPlan.Repo.get(id)
+  end
+
+  defp pmap(collection, func) do
+    collection
+    |> Enum.map(&Task.async(fn -> func.(&1) end))
+    |> Enum.map(&Task.await/1)
   end
 end
