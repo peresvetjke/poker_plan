@@ -3,6 +3,11 @@ FROM libertas.art.rambler.ru/elixir:1.14.3-alpine AS build
 # Set exposed ports
 # EXPOSE 5000
 ENV MIX_ENV=prod
+# TODO: To be moved to Gitlab CI.
+# ENV DATABASE_URL=postgres://pokerplan_production_db_user:eVoHuCJumftfLxf9wlKxd0R89JvWkD6R@dpg-ch9cl29mbg51autrq9eg-a.frankfurt-postgres.render.com/pokerplan_production_db
+# ENV DATABASE_URL=postgres://pp_user:pp_password@localhost:5432
+# ENV SECRET_KEY_BASE=Ss8Y3jQ94rrYXCdBmArnSv1Bfe6BwK8WiZ9/Q6m5yBWMz52EohLDUhLZrxnWx7El
+# ENV PHX_SERVER=true
 
 # Install build dependencies
 # RUN apk add --update --no-cache build-base git nodejs npm
