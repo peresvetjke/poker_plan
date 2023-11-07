@@ -7,7 +7,7 @@ ENV PHX_SERVER=true
 
 # Install build dependencies
 # RUN apk add --update --no-cache build-base git nodejs npm
-RUN apk update && apk upgrade && apk add npm curl
+RUN apk update && apk upgrade && apk add npm curl bash
 
 # Copy the Phoenix project to the container
 WORKDIR /app

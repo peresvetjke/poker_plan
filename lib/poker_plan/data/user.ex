@@ -26,6 +26,10 @@ defmodule PokerPlan.Data.User do
     |> refresh_user()
   end
 
+  def reset_password_changeset(user, attrs) do
+    PowResetPassword.Ecto.Schema.reset_password_changeset(user, attrs)
+  end
+
   defp refresh_user(
          %Ecto.Changeset{
            valid?: true,

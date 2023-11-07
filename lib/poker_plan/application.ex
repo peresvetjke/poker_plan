@@ -7,29 +7,12 @@ defmodule PokerPlan.Application do
 
   @impl true
   def start(_type, _args) do
-    children = [
-      # Start the Telemetry supervisor
-      PokerPlanWeb.Telemetry,
-      # Start the Ecto repository
-      PokerPlan.Repo,
-      # Start the PubSub system
-      {Phoenix.PubSub, name: PokerPlan.PubSub},
-      # Start Finch
-      {Finch, name: PokerPlan.Finch},
-      # Start the Endpoint (http/https)
-      PokerPlanWeb.Endpoint,
-      # Start a worker by calling: PokerPlan.Worker.start_link(arg)
-      # {PokerPlan.Worker, arg}
-      {Registry, keys: :unique, name: PokerPlan.UserRegistry},
-      {Registry, keys: :unique, name: PokerPlan.RoundRegistry},
-      {Registry, keys: :unique, name: PokerPlan.TaskRegistry}
-    ]
-
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: PokerPlan.Supervisor]
 
-    Supervisor.start_link(children, opts)
+    children()
+    |> Supervisor.start_link(opts)
   end
 
   # Tell Phoenix to update the endpoint configuration
@@ -43,9 +26,16 @@ defmodule PokerPlan.Application do
   # Load data from DB
   @impl true
   def start_phase(:cache, :normal, _options) do
-    cache_users()
-    cache_rounds()
-    cache_tasks()
+    case minimal_mode?() do
+      false ->
+        cache_users()
+        cache_rounds()
+        cache_tasks()
+
+      true ->
+        nil
+    end
+
     :ok
   end
 
@@ -67,5 +57,41 @@ defmodule PokerPlan.Application do
     |> PokerPlan.Repo.all()
     |> PokerPlan.Repo.preload(:estimations)
     |> Enum.each(fn t -> PokerPlan.Task.start_link(t) end)
+  end
+
+  defp children() do
+    case minimal_mode?() do
+      true ->
+        [
+          # Start the Ecto repository
+          PokerPlan.Repo
+        ]
+
+      false ->
+        [
+          # Start the Telemetry supervisor
+          PokerPlanWeb.Telemetry,
+          # Start the Ecto repository
+          PokerPlan.Repo,
+          # Start the PubSub system
+          {Phoenix.PubSub, name: PokerPlan.PubSub},
+          # Start Finch
+          {Finch, name: PokerPlan.Finch},
+          # Start the Endpoint (http/https)
+          PokerPlanWeb.Endpoint,
+          # Start a worker by calling: PokerPlan.Worker.start_link(arg)
+          # {PokerPlan.Worker, arg}
+          {Registry, keys: :unique, name: PokerPlan.UserRegistry},
+          {Registry, keys: :unique, name: PokerPlan.RoundRegistry},
+          {Registry, keys: :unique, name: PokerPlan.TaskRegistry}
+        ]
+    end
+  end
+
+  defp minimal_mode? do
+    case Application.get_env(:poker_plan, :minimal) do
+      true -> true
+      _ -> false
+    end
   end
 end
